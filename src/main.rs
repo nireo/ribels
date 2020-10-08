@@ -6,14 +6,48 @@ use serenity::{
     prelude::*,
 };
 
+use dotenv::dotenv;
+
 struct Handler;
+
+static PREFIX: char = '%';
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                println!("Error sending message: {:?}", why);
+        // tokenize the input:
+        let args = msg.content.split(" ");
+        let args = args.collect::<Vec<&str>>();
+
+        match args[0] {
+            format!("{}recent", PREFIX) => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Your recent plays!").await {
+                    println!("Error sending message: {:?}", why);
+                }
+            }
+
+            format!("{}osutop", PREFIX) => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Your recent plays!").await {
+                    println!("Error sending message: {:?}", why);
+                }
+            }
+
+            format!("{}set", PREFIX) => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Your recent plays!").await {
+                    println!("Error sending message: {:?}", why);
+                }
+            }
+
+            format!("{}osu", PREFIX) => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Your recent plays!").await {
+                    println!("Error sending message: {:?}", why);
+                }
+            }
+
+            format!("{}recent", PREFIX) => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Your recent plays!").await {
+                    println!("Error sending message: {:?}", why);
+                }
             }
         }
     }
@@ -25,6 +59,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a token in the environment");
 
