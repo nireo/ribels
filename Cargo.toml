@@ -9,6 +9,12 @@ edition = "2018"
 [dependencies]
 tokio = { version = "0.2", features = ["macros"] }
 dotenv = "0.14"
+diesel = { version = "1.4", features = ["postgres", "r2d2", "uuid", "chrono"] }
+diesel_migrations = "1.4"
+chrono = { version = "0.4", features = ["serde"] }
+lazy_static = "1.4"
+r2d2 = "0.8"
+uuid = { version = "0.6", features = ["serde", "v4"] }
 
 
 [dependencies.serenity]

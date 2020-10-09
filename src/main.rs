@@ -8,6 +8,8 @@ use serenity::{
 
 use dotenv::dotenv;
 
+mod db;
+
 struct Handler;
 
 static PREFIX: char = '%';
@@ -62,6 +64,8 @@ async fn main() {
     dotenv().ok();
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a token in the environment");
+
+    db::init();
 
     let mut client = Client::new(&token)
         .event_handler(Handler)
