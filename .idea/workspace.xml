@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="25efba5b-3869-4806-96b6-d5a927fdc463" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/db.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +69,7 @@
       <workItem from="1602270729425" duration="597000" />
       <workItem from="1602331546392" duration="113000" />
       <workItem from="1602331671944" duration="218000" />
-      <workItem from="1602331902754" duration="4869000" />
+      <workItem from="1602331902754" duration="5234000" />
     </task>
     <servers />
   </component>
@@ -97,9 +93,9 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="430" y="643" width="406" height="138" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1440/2560.0.1920.1080@0.0.2560.1440" timestamp="1602331569036" />
-    <state x="941" y="343" width="672" height="678" key="search.everywhere.popup" timestamp="1602336744672">
+    <state x="941" y="343" width="672" height="678" key="search.everywhere.popup" timestamp="1602336955511">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="941" y="343" width="672" height="678" key="search.everywhere.popup/0.0.2560.1440/2560.0.1920.1080@0.0.2560.1440" timestamp="1602336744672" />
+    <state x="941" y="343" width="672" height="678" key="search.everywhere.popup/0.0.2560.1440/2560.0.1920.1080@0.0.2560.1440" timestamp="1602336955511" />
   </component>
 </project>
