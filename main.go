@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -34,13 +35,9 @@ type OsuUserResponse struct {
 	SecondsPlayed string `json:"total_seconds_played"`
 }
 
-type OsuAPI struct {
-	Key string
-}
-
-func (osuApi *OsuAPI) GetUser(username string) (OsuUserResponse, error) {
-	var osuUser OsuUserResponse
-	response, err := http.Get("api_call")
+func GetUserFromOSU(username string) ([]OsuUserResponse, error) {
+	var osuUser []OsuUserResponse
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user?u=%s&k=%s", username, key))
 	if err != nil {
 		return osuUser, err
 	}
@@ -60,7 +57,9 @@ func (osuApi *OsuAPI) GetUser(username string) (OsuUserResponse, error) {
 }
 
 var db *gorm.DB
-var api *OsuAPI
+
+// the osu api key
+var key string
 
 func CheckIfSet(userID string) (User, error) {
 	var user User
@@ -104,7 +103,7 @@ func main() {
 		log.Fatal("Cannot create a bot instance")
 	}
 
-	api = &OsuAPI{Key: os.Getenv("OSU_KEY")}
+	key = os.Getenv("OSU_KEY")
 	dg.AddHandler(messageHandler)
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 
@@ -156,7 +155,30 @@ func messageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 			return
 		}
 
-		session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("%s is set", user.OsuName))
+		osuUserArray, err := GetUserFromOSU(user.OsuName)
+		if err != nil {
+			session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		selectedUser := osuUserArray[0]
+
+		// create embed fields
+		var fields []*discordgo.MessageEmbedField
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Playcount", Value: selectedUser.Playcount, Inline: false})
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Rank", Value: selectedUser.PPRank, Inline: false})
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Playtime", Value: selectedUser.SecondsPlayed, Inline: false})
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Level", Value: selectedUser.Level, Inline: false})
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Country", Value: selectedUser.Country, Inline: false})
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Accuracy", Value: selectedUser.Accuracy, Inline: false})
+
+		// create the final embed
+		var messageEmbed discordgo.MessageEmbed
+		messageEmbed.Title = selectedUser.Username
+		messageEmbed.Fields = fields
+		messageEmbed.Type = "rich"
+
+		session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 	}
 
 	if args[0] == "$top" {
