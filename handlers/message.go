@@ -77,6 +77,25 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 			return
 		}
 
-		session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("%s is set", user.OsuName))
+		topPlays, err := utils.GetUserTopplaysFromOSU(user.OsuName)
+		if err != nil {
+			session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		var fields []*discordgo.MessageEmbedField
+		for index := range topPlays {
+			fields = append(fields,
+				&discordgo.MessageEmbedField{
+					Name:  "YEP",
+					Value: fmt.Sprintf("BeatmapId %s and pp %s", topPlays[index].BeatmapID, topPlays[index].PP)})
+		}
+
+		var messageEmbed discordgo.MessageEmbed
+		messageEmbed.Title = fmt.Sprintf("%s top plays", user.OsuName)
+		messageEmbed.Type = "rich"
+		messageEmbed.Fields = fields
+
+		session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 	}
 }
