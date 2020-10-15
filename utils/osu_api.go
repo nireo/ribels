@@ -51,6 +51,18 @@ type OsuBeatmap struct {
 	MaxCombo    string `json:"max_combo"`
 }
 
+type OsuRecentPlay struct {
+	BeatmapID   string `json:"beatmap_id"`
+	Score       string `json:"score"`
+	MaxCombo    string `json:"maxcombo"`
+	Count50     string `json:"count50"`
+	Count100    string `json:"count100"`
+	Count300    string `json:"count300"`
+	CountMiss   string `json:"countmiss"`
+	EnabledMods string `json:"enabled_mods"`
+	Date        string `json:"date"`
+}
+
 func GetUserFromOSU(username string) ([]OsuUserResponse, error) {
 	var osuUser []OsuUserResponse
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user?u=%s&k=%s", username, key))
@@ -114,8 +126,8 @@ func GetOsuBeatmap(beatmapID string) (OsuBeatmap, error) {
 	return beatmap[0], nil
 }
 
-func GetRecentPlay(username string) (OsuBeatmap, error) {
-	var beatmap []OsuBeatmap
+func GetRecentPlay(username string) (OsuRecentPlay, error) {
+	var beatmap []OsuRecentPlay
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?u=%s&k=%s&limit=1", username, key))
 	if err != nil {
 		return beatmap[0], err

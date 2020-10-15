@@ -38,13 +38,20 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 
 	if args[0] == "$osu" {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
+		var osuName string
+		if len(args) > 1 {
+			osuName = strings.Join(args[1:], "_")
+		} else {
+			user, err := utils.CheckIfSet(msg.Author.ID)
+			if err != nil {
+				session.ChannelMessageSend(msg.ChannelID, "Not set in database")
+				return
+			}
+
+			osuName = user.OsuName
 		}
 
-		osuUserArray, err := utils.GetUserFromOSU(user.OsuName)
+		osuUserArray, err := utils.GetUserFromOSU(osuName)
 		if err != nil {
 			session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
@@ -54,12 +61,23 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 		// create embed fields
 		var fields []*discordgo.MessageEmbedField
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Playcount", Value: selectedUser.Playcount, Inline: false})
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Rank", Value: selectedUser.PPRank, Inline: false})
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Playtime", Value: selectedUser.SecondsPlayed, Inline: false})
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Level", Value: selectedUser.Level, Inline: false})
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Country", Value: selectedUser.Country, Inline: false})
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Accuracy", Value: selectedUser.Accuracy, Inline: false})
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Playcount", Value: selectedUser.Playcount, Inline: false})
+
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Rank", Value: selectedUser.PPRank, Inline: false})
+
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Playtime", Value: selectedUser.SecondsPlayed, Inline: false})
+
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Level", Value: selectedUser.Level, Inline: false})
+
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Country", Value: selectedUser.Country, Inline: false})
+
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "Accuracy", Value: selectedUser.Accuracy, Inline: false})
 
 		// create the final embed
 		var messageEmbed discordgo.MessageEmbed
@@ -71,13 +89,20 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 
 	if args[0] == "$top" {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
+		var osuName string
+		if len(args) > 1 {
+			osuName = strings.Join(args[1:], "_")
+		} else {
+			user, err := utils.CheckIfSet(msg.Author.ID)
+			if err != nil {
+				session.ChannelMessageSend(msg.ChannelID, "Not set in database")
+				return
+			}
+
+			osuName = user.OsuName
 		}
 
-		topPlays, err := utils.GetUserTopplaysFromOSU(user.OsuName)
+		topPlays, err := utils.GetUserTopplaysFromOSU(osuName)
 		if err != nil {
 			session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
@@ -99,7 +124,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		}
 
 		var messageEmbed discordgo.MessageEmbed
-		messageEmbed.Title = fmt.Sprintf("osu! Standard top plays for %s", user.OsuName)
+		messageEmbed.Title = fmt.Sprintf("osu! Standard top plays for %s", osuName)
 		messageEmbed.Type = "rich"
 		messageEmbed.Fields = fields
 
@@ -107,12 +132,54 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 
 	if args[0] == "$recent" {
-		user, err := utils.CheckIfSet(msg.Author.ID)
+		var osuName string
+		if len(args) > 1 {
+			osuName = strings.Join(args[1:], "_")
+		} else {
+			user, err := utils.CheckIfSet(msg.Author.ID)
+			if err != nil {
+				session.ChannelMessageSend(msg.ChannelID, "Not set in database")
+				return
+			}
+
+			osuName = user.OsuName
+		}
+
+		// get the most recent play from user
+		recentPlay, err := utils.GetRecentPlay(osuName)
 		if err != nil {
 			session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
 		}
 
-		session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("recent play for %s", user.OsuName))
+		var fields []*discordgo.MessageEmbedField
+		formattedCounts := fmt.Sprintf("[%s/%s/%s/%s]",
+			recentPlay.Count300, recentPlay.Count100, recentPlay.Count50, recentPlay.CountMiss)
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Counts",
+			Value:  formattedCounts,
+			Inline: true,
+		})
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Score",
+			Value:  recentPlay.Score,
+			Inline: true,
+		})
+
+		beatmap, err := utils.GetOsuBeatmap(recentPlay.BeatmapID)
+		if err != nil {
+			session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		session.ChannelMessageSend(msg.ChannelID,
+			fmt.Sprintf("Most recent osu! Standard plays for %s", osuName))
+
+		var messageEmbed discordgo.MessageEmbed
+		messageEmbed.Title = beatmap.Title
+		messageEmbed.Fields = fields
+
+		session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 	}
 }
