@@ -85,17 +85,34 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 		var fields []*discordgo.MessageEmbedField
 		for index := range topPlays {
+			beatmap, err := utils.GetOsuBeatmap(topPlays[index].BeatmapID)
+			if err != nil {
+				session.ChannelMessageSend(msg.ChannelID, err.Error())
+				return
+			}
+
 			fields = append(fields,
 				&discordgo.MessageEmbedField{
-					Name:  "YEP",
-					Value: fmt.Sprintf("BeatmapId %s and pp %s", topPlays[index].BeatmapID, topPlays[index].PP)})
+					Name:   beatmap.Title,
+					Value:  topPlays[index].PP,
+					Inline: false})
 		}
 
 		var messageEmbed discordgo.MessageEmbed
-		messageEmbed.Title = fmt.Sprintf("%s top plays", user.OsuName)
+		messageEmbed.Title = fmt.Sprintf("osu! Standard top plays for %s", user.OsuName)
 		messageEmbed.Type = "rich"
 		messageEmbed.Fields = fields
 
 		session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	}
+
+	if args[0] == "$recent" {
+		user, err := utils.CheckIfSet(msg.Author.ID)
+		if err != nil {
+			session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("recent play for %s", user.OsuName))
 	}
 }

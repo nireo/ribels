@@ -40,6 +40,17 @@ type OsuTopPlay struct {
 	ReplayAvailable string `json:"replay_available"`
 }
 
+type OsuBeatmap struct {
+	Approved    string `json:"approved"`
+	BPM         string `json:"bpm"`
+	Difficulty  string `json:"difficultyrating"`
+	Created     string `json:"creator"`
+	Artist      string `json:"artist"`
+	Title       string `json:"title"`
+	TotalLength string `json:"total_length"`
+	MaxCombo    string `json:"max_combo"`
+}
+
 func GetUserFromOSU(username string) ([]OsuUserResponse, error) {
 	var osuUser []OsuUserResponse
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user?u=%s&k=%s", username, key))
@@ -80,6 +91,48 @@ func GetUserTopplaysFromOSU(username string) ([]OsuTopPlay, error) {
 	}
 
 	return topplays, nil
+}
+
+func GetOsuBeatmap(beatmapID string) (OsuBeatmap, error) {
+	var beatmap []OsuBeatmap
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?b=%s&k=%s&limit=5", beatmapID, key))
+	if err != nil {
+		return beatmap[0], err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return beatmap[0], err
+	}
+
+	if err := json.Unmarshal(body, &beatmap); err != nil {
+		return beatmap[0], err
+	}
+
+	return beatmap[0], nil
+}
+
+func GetRecentPlay(username string) (OsuBeatmap, error) {
+	var beatmap []OsuBeatmap
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?u=%s&k=%s&limit=1", username, key))
+	if err != nil {
+		return beatmap[0], err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return beatmap[0], err
+	}
+
+	if err := json.Unmarshal(body, &beatmap); err != nil {
+		return beatmap[0], err
+	}
+
+	return beatmap[0], nil
 }
 
 func InitApiKey() {
