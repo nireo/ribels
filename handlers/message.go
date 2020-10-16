@@ -116,10 +116,21 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 				return
 			}
 
+			formattedPP := strings.Split(topPlays[index].PP, ".")
+			formattedValue := fmt.Sprintf("PP: %s, Score set: %s",
+				formattedPP[0], topPlays[index].Date)
+
+			mods, err := utils.GetMods(topPlays[index].EnabledMods)
+			if err != nil {
+				session.ChannelMessageSend(msg.ChannelID, err.Error())
+				return
+			}
+
+			formattedTitle := fmt.Sprintf("%s + %s", beatmap.Title, mods)
 			fields = append(fields,
 				&discordgo.MessageEmbedField{
-					Name:   beatmap.Title,
-					Value:  topPlays[index].PP,
+					Name:   formattedTitle,
+					Value:  formattedValue,
 					Inline: false})
 		}
 
@@ -172,9 +183,6 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 			session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
 		}
-
-		session.ChannelMessageSend(msg.ChannelID,
-			fmt.Sprintf("Most recent osu! Standard plays for %s", osuName))
 
 		var messageEmbed discordgo.MessageEmbed
 		messageEmbed.Title = beatmap.Title

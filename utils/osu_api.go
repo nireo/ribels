@@ -34,7 +34,7 @@ type OsuTopPlay struct {
 	CountGeki       string `json:"countgeki"`
 	Perfect         string `json:"perfect"`
 	EnabledMods     string `json:"enabled_mods"`
-	UserID          string `json:"date"`
+	Date            string `json:"date"`
 	Rank            string `json:"rank"`
 	PP              string `json:"pp"`
 	ReplayAvailable string `json:"replay_available"`
