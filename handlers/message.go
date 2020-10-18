@@ -13,6 +13,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// tokenize the input
 	args := strings.Split(msg.Content, " ")
 
+	// For each command create a goroutine, so basically concurrently execute all commands!
 	switch args[0] {
 	case "$set":
 		go commands.SetCommandHandler(session, msg, args)
@@ -20,6 +21,10 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.OsuCommandHandler(session, msg, args)
 	case "$top":
 		go commands.TopCommandHandler(session, msg, args)
+	case "$help":
+		go commands.HelpCommandHandler(session, msg)
+	case "$github":
+		go commands.GithubCommandHandler(session, msg)
 	default:
 		return
 	}
