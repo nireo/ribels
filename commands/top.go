@@ -8,7 +8,9 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
+// This command returns the first 10 top plays of a user!
 func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
+	// Check if a user argument is provided otherwise get linked osuname
 	var osuName string
 	if len(args) > 1 {
 		osuName = utils.FormatName(args[1:])
@@ -22,24 +24,32 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		osuName = user.OsuName
 	}
 
+	// get the top plays from the osu api using the username
 	topPlays, err := utils.GetUserTopplaysFromOSU(osuName)
 	if err != nil {
 		session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
 
+	// create the fields
 	var fields []*discordgo.MessageEmbedField
+
+	// we can use a loop since all the fields are similar in a sense
 	for index := range topPlays {
+		// load the beatmap so that we can get more information other than the ID
 		beatmap, err := utils.GetOsuBeatmap(topPlays[index].BeatmapID)
 		if err != nil {
 			session.ChannelMessage(msg.ChannelID,
 				fmt.Sprintf("Error getting beatmap information on top score #%d", index+1))
-			return
+			// if there was an error, still try to display rest of the top plays
+			continue
 		}
 
 		formattedPP := strings.Split(topPlays[index].PP, ".")
 		formattedValue := fmt.Sprintf("PP: %s, Score set: %s", formattedPP[0], topPlays[index].Date)
 
+		// do all the needed bitwise calculations to get the mods; the error will never happen,
+		// but handle it for good merit!
 		mods, err := utils.GetMods(topPlays[index].EnabledMods)
 		if err != nil {
 			session.ChannelMessageSend(msg.ChannelID, err.Error())
@@ -47,6 +57,8 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		}
 
 		formattedTitle := fmt.Sprintf("%s + %s", beatmap.Title, mods)
+
+		// finally add the new field to the fields array
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   formattedTitle,
 			Value:  formattedValue,

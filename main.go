@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+	// Load all the environment variables from .env
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Problem loading environment file")
 	}
@@ -20,16 +22,21 @@ func main() {
 	utils.InitDatabase()
 	utils.InitApiKey()
 
+	// check if logging is enabled, and set the logging in the message handler
+	status, _ := strconv.ParseBool(os.Getenv("LOGGING"))
+	handlers.SetLogging(status)
+
+	// Create discord instance
 	dg, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
 		log.Fatal("Cannot create a bot instance")
 	}
 
+	// add the message handler, which handles all the commands
 	dg.AddHandler(handlers.MessageHandler)
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 
-	err = dg.Open()
-	if err != nil {
+	if err := dg.Open(); err != nil {
 		log.Fatal("Error opening connection")
 	}
 

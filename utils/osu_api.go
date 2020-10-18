@@ -10,6 +10,8 @@ import (
 
 var key string
 
+// Since golang is a static typed language we need to create structs for the json requests
+// note that we don't need to add a field for every single json field, just for those which we need
 type OsuUserResponse struct {
 	Username      string `json:"username"`
 	Playcount     string `json:"playcount"`
@@ -22,22 +24,19 @@ type OsuUserResponse struct {
 }
 
 type OsuTopPlay struct {
-	BeatmapID       string `json:"beatmap_id"`
-	ScoreID         string `json:"score_id"`
-	Score           string `json:"score"`
-	MaxCombo        string `json:"maxcombo"`
-	Count50         string `json:"count50"`
-	Count100        string `json:"count100"`
-	Count300        string `json:"count300"`
-	CountMiss       string `json:"countmiss"`
-	CountKatu       string `json:"countkatu"`
-	CountGeki       string `json:"countgeki"`
-	Perfect         string `json:"perfect"`
-	EnabledMods     string `json:"enabled_mods"`
-	Date            string `json:"date"`
-	Rank            string `json:"rank"`
-	PP              string `json:"pp"`
-	ReplayAvailable string `json:"replay_available"`
+	BeatmapID   string `json:"beatmap_id"`
+	ScoreID     string `json:"score_id"`
+	Score       string `json:"score"`
+	MaxCombo    string `json:"maxcombo"`
+	Count50     string `json:"count50"`
+	Count100    string `json:"count100"`
+	Count300    string `json:"count300"`
+	CountMiss   string `json:"countmiss"`
+	Perfect     string `json:"perfect"`
+	EnabledMods string `json:"enabled_mods"`
+	Date        string `json:"date"`
+	Rank        string `json:"rank"`
+	PP          string `json:"pp"`
 }
 
 type OsuBeatmap struct {
@@ -63,25 +62,28 @@ type OsuRecentPlay struct {
 	Date        string `json:"date"`
 }
 
-func GetUserFromOSU(username string) ([]OsuUserResponse, error) {
+func GetUserFromOSU(username string) (OsuUserResponse, error) {
+	// The osu api returns an array for some reason
 	var osuUser []OsuUserResponse
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user?u=%s&k=%s", username, key))
 	if err != nil {
-		return osuUser, err
+		return osuUser[0], err
 	}
 
 	defer response.Body.Close()
 
+	// read the body
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return osuUser, err
+		return osuUser[0], err
 	}
 
+	// parse the json to golang structs
 	if err := json.Unmarshal(body, &osuUser); err != nil {
-		return osuUser, err
+		return osuUser[0], err
 	}
 
-	return osuUser, nil
+	return osuUser[0], nil
 }
 
 func GetUserTopplaysFromOSU(username string) ([]OsuTopPlay, error) {

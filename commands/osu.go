@@ -5,7 +5,10 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
+// This command gives information about a certain user,
+// either the user from an argument or a user from the database
 func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
+	// check if a user argument is provided, otherwise load user from database
 	var osuName string
 	if len(args) > 1 {
 		osuName = utils.FormatName(args[1:])
@@ -19,13 +22,12 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		osuName = user.OsuName
 	}
 
-	osuUserArray, err := utils.GetUserFromOSU(osuName)
+	// The osu api gives every single request as an array so we just need to extract the first element
+	selectedUser, err := utils.GetUserFromOSU(osuName)
 	if err != nil {
 		session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
-
-	selectedUser := osuUserArray[0]
 
 	// create embed fields
 	var fields []*discordgo.MessageEmbedField
