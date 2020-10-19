@@ -41,6 +41,10 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.GithubCommandHandler(session, msg)
 	case "$maniatop":
 		go commands.ManiaTopHandler(session, msg, args)
+	case "$taikotop":
+		go commands.TaikoTopCommandHandler(session, msg, args)
+	case "$ctbtop":
+		go commands.CTBCommandHandler(session, msg, args)
 	// if we can't find a matching command just close the handler
 	default:
 		return

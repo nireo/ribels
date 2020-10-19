@@ -8,7 +8,7 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
-func ManiaTopHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
+func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	var osuName string
 	if len(args) > 1 {
 		osuName = utils.FormatName(args[1:])
@@ -62,7 +62,7 @@ func ManiaTopHandler(session *discordgo.Session, msg *discordgo.MessageCreate, a
 	}
 
 	var messageEmbed discordgo.MessageEmbed
-	messageEmbed.Title = fmt.Sprintf("osu! Mania top plays for %s", utils.UnFormatName(osuName))
+	messageEmbed.Title = fmt.Sprintf("osu! Taiko top plays for %s", utils.UnFormatName(osuName))
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
 

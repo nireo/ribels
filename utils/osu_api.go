@@ -137,6 +137,10 @@ func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
 		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=3", username, key)
 	case "standard":
 		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s", username, key)
+	case "taiko":
+		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=1", username, key)
+	case "ctb":
+		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user/best?u=%s&k=%s&m=2", username, key)
 	default:
 		return topplays, errors.New("Unsupported mode")
 	}
