@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -126,6 +127,58 @@ func GetOsuBeatmap(beatmapID string) (OsuBeatmap, error) {
 	}
 
 	return beatmap[0], nil
+}
+
+func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
+	var requestURL string
+	var topplays []OsuTopPlay
+	switch mode {
+	case "mania":
+		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=3", username, key)
+	case "standard":
+		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s", username, key)
+	default:
+		return topplays, errors.New("Unsupported mode")
+	}
+
+	response, err := http.Get(requestURL)
+	if err != nil {
+		return topplays, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return topplays, err
+	}
+
+	if err := json.Unmarshal(body, &topplays); err != nil {
+		return topplays, err
+	}
+
+	return topplays, nil
+}
+
+func GetManiaTopPlays(username string) ([]OsuTopPlay, error) {
+	var topplays []OsuTopPlay
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=3", username, key))
+	if err != nil {
+		return topplays, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return topplays, err
+	}
+
+	if err := json.Unmarshal(body, &topplays); err != nil {
+		return topplays, err
+	}
+
+	return topplays, nil
 }
 
 func GetRecentPlay(username string) (OsuRecentPlay, error) {
