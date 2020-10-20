@@ -45,6 +45,8 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.TaikoTopCommandHandler(session, msg, args)
 	case "$ctbtop":
 		go commands.CTBCommandHandler(session, msg, args)
+	case "$map":
+		go commands.MapCommandHandler(session, msg, args)
 	// if we can't find a matching command just close the handler
 	default:
 		return
