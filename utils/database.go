@@ -15,6 +15,13 @@ type User struct {
 	OsuName   string `json:"osu_name"`
 }
 
+type LeagueUser struct {
+	gorm.Model
+	Username  string `json:"league_user"`
+	Server    string `json:"server"`
+	DiscordID string `json:"discord_id"`
+}
+
 var db *gorm.DB
 
 func GetDatabase() *gorm.DB {
@@ -33,7 +40,7 @@ func InitDatabase() {
 	}), &gorm.Config{})
 
 	// migrate models
-	database.AutoMigrate(&User{})
+	database.AutoMigrate(&User{}, &LeagueUser{})
 
 	if err != nil {
 		log.Fatal("Cannot connect to database")

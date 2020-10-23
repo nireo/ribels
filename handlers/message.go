@@ -47,6 +47,8 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.CTBCommandHandler(session, msg, args)
 	case "$map":
 		go commands.MapCommandHandler(session, msg, args)
+	case "$set-league":
+		go commands.SetLeagueCommandHandler(session, msg, args)
 	// if we can't find a matching command just close the handler
 	default:
 		return
