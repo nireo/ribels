@@ -1,11 +1,9 @@
-package utils
+package league_api
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 const (
@@ -16,40 +14,6 @@ const (
 )
 
 var client *Client
-
-type Region string
-
-const (
-	RegionBrasil            Region = "br1"
-	RegionEuropeNorthEast          = "eun1"
-	RegionEuropeWest               = "euw1"
-	RegionJapan                    = "jp1"
-	RegionKorea                    = "kr"
-	RegionLatinAmericaNorth        = "la1"
-	RegionLatinAmericaSouth        = "la2"
-	RegionNorthAmerica             = "na1"
-	RegionOceania                  = "oc1"
-	RegionTurkey                   = "tr1"
-	RegionRussia                   = "ru"
-	RegionPBE                      = "pbe1"
-)
-
-var (
-	Regions = []Region{
-		RegionBrasil,
-		RegionEuropeNorthEast,
-		RegionEuropeWest,
-		RegionJapan,
-		RegionKorea,
-		RegionLatinAmericaNorth,
-		RegionLatinAmericaSouth,
-		RegionNorthAmerica,
-		RegionOceania,
-		RegionTurkey,
-		RegionRussia,
-		RegionPBE,
-	}
-)
 
 type Client struct {
 	Region Region `json:"region"`
@@ -81,5 +45,5 @@ func (client *Client) NewRequest(method, endpoint string, body io.Reader) (*http
 
 	request.Header.Add(apiTokenHeaderKey, client.APIKey)
 	request.Header.Add("Accept", "application/json")
-	return &request, nil
+	return request, nil
 }
