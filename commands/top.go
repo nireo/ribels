@@ -24,8 +24,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		osuName = user.OsuName
 	}
 
-	// get the top plays from the osu api using the username
-	topPlays, err := utils.GetUserTopplaysFromOSU(osuName)
+	topPlays, err := utils.GetModeTopPlays(osuName, "standard")
 	if err != nil {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return

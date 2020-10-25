@@ -63,12 +63,13 @@ type OsuRecentPlay struct {
 	Date        string `json:"date"`
 }
 
-func GetUserFromOSU(username string) (OsuUserResponse, error) {
+func GetUserFromOSU(username string) (*OsuUserResponse, error) {
 	// The osu api returns an array for some reason
-	var osuUser []OsuUserResponse
+	osuUser := &OsuUserResponse{}
+	var osuUsers []OsuUserResponse
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user?u=%s&k=%s", username, key))
 	if err != nil {
-		return osuUser[0], err
+		return osuUser, err
 	}
 
 	defer response.Body.Close()
@@ -76,57 +77,41 @@ func GetUserFromOSU(username string) (OsuUserResponse, error) {
 	// read the body
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return osuUser[0], err
+		return osuUser, err
 	}
 
 	// parse the json to golang structs
-	if err := json.Unmarshal(body, &osuUser); err != nil {
-		return osuUser[0], err
+	if err := json.Unmarshal(body, &osuUsers); err != nil {
+		return osuUser, err
 	}
 
-	return osuUser[0], nil
+	osuUser = &osuUsers[0]
+	return osuUser, nil
 }
 
-func GetUserTopplaysFromOSU(username string) ([]OsuTopPlay, error) {
-	var topplays []OsuTopPlay
-	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s", username, key))
-	if err != nil {
-		return topplays, err
-	}
-
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return topplays, err
-	}
-
-	if err := json.Unmarshal(body, &topplays); err != nil {
-		return topplays, err
-	}
-
-	return topplays, nil
-}
-
-func GetOsuBeatmap(beatmapID string) (OsuBeatmap, error) {
-	var beatmap []OsuBeatmap
+func GetOsuBeatmap(beatmapID string) (*OsuBeatmap, error) {
+	// this object is used for returning an error without the risk of panicking
+	singleMap := &OsuBeatmap{}
+	var beatmaps []OsuBeatmap
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?b=%s&k=%s&limit=5", beatmapID, key))
 	if err != nil {
-		return beatmap[0], err
+		return singleMap, err
 	}
 
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return beatmap[0], err
+		return singleMap, err
 	}
 
-	if err := json.Unmarshal(body, &beatmap); err != nil {
-		return beatmap[0], err
+	if err := json.Unmarshal(body, &beatmaps); err != nil {
+		return singleMap, err
 	}
 
-	return beatmap[0], nil
+	singleMap = &beatmaps[0]
+
+	return singleMap, nil
 }
 
 func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
@@ -164,46 +149,27 @@ func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
 	return topplays, nil
 }
 
-func GetManiaTopPlays(username string) ([]OsuTopPlay, error) {
-	var topplays []OsuTopPlay
-	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=3", username, key))
-	if err != nil {
-		return topplays, err
-	}
-
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return topplays, err
-	}
-
-	if err := json.Unmarshal(body, &topplays); err != nil {
-		return topplays, err
-	}
-
-	return topplays, nil
-}
-
-func GetRecentPlay(username string) (OsuRecentPlay, error) {
-	var beatmap []OsuRecentPlay
+func GetRecentPlay(username string) (*OsuRecentPlay, error) {
+	singleMap := &OsuRecentPlay{}
+	var beatmaps []OsuRecentPlay
 	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?u=%s&k=%s&limit=1", username, key))
 	if err != nil {
-		return beatmap[0], err
+		return singleMap, err
 	}
 
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return beatmap[0], err
+		return singleMap, err
 	}
 
-	if err := json.Unmarshal(body, &beatmap); err != nil {
-		return beatmap[0], err
+	if err := json.Unmarshal(body, &beatmaps); err != nil {
+		return singleMap, err
 	}
 
-	return beatmap[0], nil
+	singleMap = &beatmaps[0]
+	return singleMap, nil
 }
 
 func InitApiKey() {

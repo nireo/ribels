@@ -32,23 +32,41 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 
 	// create embed fields
 	var fields []*discordgo.MessageEmbedField
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Playcount", Value: selectedUser.Playcount, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Playcount",
+		Value: selectedUser.Playcount,
+		Inline: false,
+	})
 
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Rank", Value: selectedUser.PPRank, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Rank",
+		Value: selectedUser.PPRank,
+		Inline: false,
+	})
 
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Playtime", Value: selectedUser.SecondsPlayed, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Playtime",
+		Value: selectedUser.SecondsPlayed,
+		Inline: false,
+	})
 
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Level", Value: selectedUser.Level, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Level",
+		Value: selectedUser.Level,
+		Inline: false,
+	})
 
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Country", Value: selectedUser.Country, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Country",
+		Value: selectedUser.Country,
+		Inline: false,
+	})
 
-	fields = append(fields,
-		&discordgo.MessageEmbedField{Name: "Accuracy", Value: selectedUser.Accuracy, Inline: false})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Accuracy",
+		Value: selectedUser.Accuracy,
+		Inline: false,
+	})
 
 	// create the final embed
 	var messageEmbed discordgo.MessageEmbed

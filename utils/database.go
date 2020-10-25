@@ -40,11 +40,13 @@ func InitDatabase() {
 		DSN: fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", host, port, user, dbName),
 	}), &gorm.Config{})
 
-	// migrate models
-	database.AutoMigrate(&User{}, &LeagueUser{})
-
 	if err != nil {
-		log.Fatal("Cannot connect to database")
+		log.Fatal(err)
+	}
+
+	// migrate models
+	if err := database.AutoMigrate(&User{}, &LeagueUser{}); err != nil {
+		log.Fatal(err)
 	}
 
 	db = database
