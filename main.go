@@ -19,8 +19,14 @@ func main() {
 		log.Fatal("Problem loading environment file")
 	}
 
+	// init the database
 	utils.InitDatabase()
+
+	// init the osu api
 	utils.InitApiKey()
+
+	// init the league of legends api
+	utils.InitClient()
 
 	// check if logging is enabled, and set the logging in the message handler
 	status, _ := strconv.ParseBool(os.Getenv("LOGGING"))

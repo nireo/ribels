@@ -20,6 +20,7 @@ type LeagueUser struct {
 	Username  string `json:"league_user"`
 	Server    string `json:"server"`
 	DiscordID string `json:"discord_id"`
+	Region    string `json:"region"`
 }
 
 var db *gorm.DB

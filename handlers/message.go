@@ -49,6 +49,8 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.MapCommandHandler(session, msg, args)
 	case "$set-league":
 		go commands.SetLeagueCommandHandler(session, msg, args)
+	case "$lol-profile":
+		go commands.LeagueProfileCommandHandler(session, msg, args)
 	// if we can't find a matching command just close the handler
 	default:
 		return
