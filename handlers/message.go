@@ -47,7 +47,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.CTBCommandHandler(session, msg, args)
 	case "$map":
 		go commands.MapCommandHandler(session, msg, args)
-	case "$set-league":
+	case "$set-lol":
 		go commands.SetLeagueCommandHandler(session, msg, args)
 	case "$lol-profile":
 		go commands.LeagueProfileCommandHandler(session, msg, args)

@@ -9,7 +9,7 @@ func SetLeagueCommandHandler(session *discordgo.Session,
 	msg *discordgo.MessageCreate, args []string) {
 	// check that an actual username is provided
 	if len(args) < 3 {
-		session.ChannelMessageSend(msg.ChannelID,
+		_, _ = session.ChannelMessageSend(msg.ChannelID,
 			"Not enough arguments provided! Provide them: USERNAME, SERVER")
 		return
 	}
@@ -18,7 +18,7 @@ func SetLeagueCommandHandler(session *discordgo.Session,
 
 	var leagueUser utils.LeagueUser
 	if err := db.Where(&utils.LeagueUser{DiscordID: msg.Author.ID}).First(&leagueUser).Error; err != nil {
-		session.ChannelMessageSend(msg.ChannelID,
+		_, _ = session.ChannelMessageSend(msg.ChannelID,
 			"A league account has already been linked with this account!")
 		return
 	}
@@ -33,5 +33,5 @@ func SetLeagueCommandHandler(session *discordgo.Session,
 	}
 
 	db.Create(&newUser)
-	session.ChannelMessageSend(msg.ChannelID, "The provided is user is now linked to the discord!")
+	_, _ = session.ChannelMessageSend(msg.ChannelID, "The provided is user is now linked to the discord!")
 }

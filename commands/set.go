@@ -9,7 +9,7 @@ import (
 func SetCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// Check that the name isn't empty
 	if len(args) == 1 {
-		session.ChannelMessageSend(msg.ChannelID, "No username provided!")
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "No username provided!")
 		return
 	}
 
@@ -21,7 +21,7 @@ func SetCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 
 	// err == nil, because if there was no problem finding an user, that means that the user already exists
 	if err := db.Where(&utils.User{OsuName: osuName}).First(&user).Error; err == nil {
-		session.ChannelMessageSend(msg.ChannelID, "User already in database")
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "User already in database")
 		return
 	}
 
@@ -33,5 +33,5 @@ func SetCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 
 	// save the model
 	db.Create(&newUser)
-	session.ChannelMessageSend(msg.ChannelID, "Username saved into database")
+	_, _ = session.ChannelMessageSend(msg.ChannelID, "Username saved into database")
 }

@@ -17,7 +17,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	} else {
 		user, err := utils.CheckIfSet(msg.Author.ID)
 		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID, "Not set in database")
+			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
 			return
 		}
 
@@ -27,7 +27,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	// get the top plays from the osu api using the username
 	topPlays, err := utils.GetUserTopplaysFromOSU(osuName)
 	if err != nil {
-		session.ChannelMessageSend(msg.ChannelID, err.Error())
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
 
@@ -39,7 +39,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		// load the beatmap so that we can get more information other than the ID
 		beatmap, err := utils.GetOsuBeatmap(topPlays[index].BeatmapID)
 		if err != nil {
-			session.ChannelMessage(msg.ChannelID,
+			_, _ = session.ChannelMessage(msg.ChannelID,
 				fmt.Sprintf("Error getting beatmap information on top score #%d", index+1))
 			// if there was an error, still try to display rest of the top plays
 			continue
@@ -52,7 +52,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		// but handle it for good merit!
 		mods, err := utils.GetMods(topPlays[index].EnabledMods)
 		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID, err.Error())
+			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
 		}
 
@@ -70,5 +70,5 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
 
-	session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

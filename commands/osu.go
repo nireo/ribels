@@ -15,8 +15,9 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	} else {
 		user, err := utils.CheckIfSet(msg.Author.ID)
 		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID,
+			_, _ = session.ChannelMessageSend(msg.ChannelID,
 				"Your osu! profile is not set. To do this type $set osu_name")
+			return
 		}
 
 		osuName = user.OsuName
@@ -25,7 +26,7 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	// The osu api gives every single request as an array so we just need to extract the first element
 	selectedUser, err := utils.GetUserFromOSU(osuName)
 	if err != nil {
-		session.ChannelMessageSend(msg.ChannelID, err.Error())
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
 
@@ -55,5 +56,5 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Fields = fields
 	messageEmbed.Type = "rich"
 
-	session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

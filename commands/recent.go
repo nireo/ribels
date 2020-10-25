@@ -16,7 +16,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	} else {
 		user, err := utils.CheckIfSet(msg.Author.ID)
 		if err != nil {
-			session.ChannelMessageSend(msg.ChannelID, "Not set in database")
+			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
 			return
 		}
 
@@ -26,7 +26,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	// get the most recent play from user
 	recentPlay, err := utils.GetRecentPlay(osuName)
 	if err != nil {
-		session.ChannelMessageSend(msg.ChannelID, err.Error())
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
 
@@ -56,7 +56,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	// get the beatmap, so that we can use it's name and other data related to it
 	beatmap, err := utils.GetOsuBeatmap(recentPlay.BeatmapID)
 	if err != nil {
-		session.ChannelMessageSend(msg.ChannelID, err.Error())
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
 
@@ -65,8 +65,8 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	messageEmbed.Title = beatmap.Title
 	messageEmbed.Fields = fields
 
-	session.ChannelMessageSend(msg.ChannelID,
+	_, _ = session.ChannelMessageSend(msg.ChannelID,
 		fmt.Sprintf("Most recent osu!Standard play for %s", utils.UnFormatName(osuName)))
 
-	session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

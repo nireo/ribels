@@ -23,7 +23,7 @@ func MapCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	// find the osu beatmap
 	beatmap, err := utils.GetOsuBeatmap(beatmapID)
 	if err != nil {
-		session.ChannelMessageSend(msg.ChannelID, "Problem retrieving osu map info")
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Problem retrieving osu map info")
 		return
 	}
 
@@ -57,5 +57,5 @@ func MapCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
 
-	session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }
