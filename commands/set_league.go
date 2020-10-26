@@ -3,33 +3,38 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/nireo/ribels/utils"
+	"strings"
 )
 
 func SetLeagueCommandHandler(session *discordgo.Session,
 	msg *discordgo.MessageCreate, args []string) {
 	// check that an actual username is provided
-	if len(args) < 3 {
+	if len(args) != 3 {
 		_, _ = session.ChannelMessageSend(msg.ChannelID,
-			"Not enough arguments provided! Provide them: USERNAME, SERVER")
+			"Invalid arguments! Provide them: USERNAME, SERVER")
 		return
 	}
 
 	db := utils.GetDatabase()
 
 	var leagueUser utils.LeagueUser
-	if err := db.Where(&utils.LeagueUser{DiscordID: msg.Author.ID}).First(&leagueUser).Error; err != nil {
+	if err := db.Where(&utils.LeagueUser{DiscordID: msg.Author.ID}).First(&leagueUser).Error; err == nil {
 		_, _ = session.ChannelMessageSend(msg.ChannelID,
 			"A league account has already been linked with this account!")
 		return
 	}
 
-	leagueUsername := utils.FormatName(args[1:])
+	if _, ok := utils.Servers[strings.ToLower(args[2])]; !ok {
+		_, _ = session.ChannelMessageSend(msg.ChannelID,
+			"Problem parsing league server")
+		return
+	}
 
 	// create the new user model
 	newUser := &utils.LeagueUser{
-		Username:  leagueUsername,
+		Username:  args[1],
 		DiscordID: msg.Author.ID,
-		Server:    args[len(args)-1],
+		Region:    args[len(args)-1],
 	}
 
 	db.Create(&newUser)

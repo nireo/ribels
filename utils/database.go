@@ -18,7 +18,6 @@ type User struct {
 type LeagueUser struct {
 	gorm.Model
 	Username  string `json:"league_user"`
-	Server    string `json:"server"`
 	DiscordID string `json:"discord_id"`
 	Region    string `json:"region"`
 }
