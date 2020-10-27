@@ -61,7 +61,10 @@ type OsuRecentPlay struct {
 	CountMiss   string `json:"countmiss"`
 	EnabledMods string `json:"enabled_mods"`
 	Date        string `json:"date"`
+	Rank        string `json:"rank"`
 }
+
+var RankEmojis map[string]string
 
 func GetUserFromOSU(username string) (*OsuUserResponse, error) {
 	// The osu api returns an array for some reason
@@ -152,7 +155,9 @@ func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
 func GetRecentPlay(username string) (*OsuRecentPlay, error) {
 	singleMap := &OsuRecentPlay{}
 	var beatmaps []OsuRecentPlay
-	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?u=%s&k=%s&limit=1", username, key))
+	response, err := http.Get(fmt.Sprintf(
+		"https://osu.ppy.sh/api/get_user_recent?u=%s&k=%s", username, key))
+
 	if err != nil {
 		return singleMap, err
 	}
@@ -168,10 +173,25 @@ func GetRecentPlay(username string) (*OsuRecentPlay, error) {
 		return singleMap, err
 	}
 
+	if len(beatmaps) == 0 {
+		return singleMap, errors.New("user has no recent plays")
+	}
+
 	singleMap = &beatmaps[0]
 	return singleMap, nil
 }
 
 func InitApiKey() {
 	key = os.Getenv("OSU_KEY")
+
+	RankEmojis = map[string]string{
+		"X":  "<:bibelsX:753277439102418996>",
+		"S":  "<:bibelsS:753277217420607679>",
+		"XH": "<:bibelsXH:753277379048374334>",
+		"SH": "<:bibelsSH:753277326128709665>",
+		"A":  "<:bibelsA:753276834933637282>",
+		"B":  "<:bibelsB:753276991473451020>",
+		"C":  "<:bibelsC:753277059094020216>",
+		"D":  "<:bibelsD:753277123070001244>",
+	}
 }

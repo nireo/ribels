@@ -30,6 +30,13 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 		return
 	}
 
+	// get the beatmap, so that we can use it's name and other data related to it
+	beatmap, err := utils.GetOsuBeatmap(recentPlay.BeatmapID)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+		return
+	}
+
 	// make fields for the rich embed message
 	var fields []*discordgo.MessageEmbedField
 	formattedCounts := fmt.Sprintf("[%s/%s/%s/%s]",
@@ -48,21 +55,34 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	})
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Date",
-		Value:  recentPlay.Date,
-		Inline: false,
+		Name: "Combo",
+		Value: fmt.Sprintf("[%sx/%sx]", recentPlay.MaxCombo, beatmap.MaxCombo),
+		Inline: true,
 	})
 
-	// get the beatmap, so that we can use it's name and other data related to it
-	beatmap, err := utils.GetOsuBeatmap(recentPlay.BeatmapID)
-	if err != nil {
-		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
-		return
-	}
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Date",
+		Value:  recentPlay.Date,
+		Inline: true,
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Difficulty",
+		Value: beatmap.Difficulty,
+		Inline: true,
+	})
+
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Rank",
+		Value: utils.RankEmojis[recentPlay.Rank],
+		Inline: true,
+	})
 
 	// create the actual embed
 	var messageEmbed discordgo.MessageEmbed
-	messageEmbed.Title = beatmap.Title
+	messageEmbed.Type = "rich"
+	messageEmbed.Title = fmt.Sprintf("%s", beatmap.Title)
 	messageEmbed.Fields = fields
 
 	_, _ = session.ChannelMessageSend(msg.ChannelID,

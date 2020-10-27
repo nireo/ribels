@@ -55,7 +55,8 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 			return
 		}
 
-		formattedTitle := fmt.Sprintf("%s + %s", beatmap.Title, mods)
+		formattedTitle := fmt.Sprintf("%s %s + %s",
+			utils.RankEmojis[topPlays[index].Rank], beatmap.Title, mods)
 
 		// finally add the new field to the fields array
 		fields = append(fields, &discordgo.MessageEmbedField{
