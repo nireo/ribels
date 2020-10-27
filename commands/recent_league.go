@@ -47,13 +47,9 @@ func RecentLeagueCommandHandler(session *discordgo.Session, msg *discordgo.Messa
 		return
 	}
 
-	matches, err := client.Riot.Match.List(summoner.AccountID, 0, 1)
+	_, err = client.Riot.Match.List(summoner.AccountID, 0, 1)
 	if err != nil {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, "Problem getting match information")
 		return
-	}
-
-	for _, match := range matches.Matches {
-		match.
 	}
 }

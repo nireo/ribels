@@ -280,14 +280,12 @@ func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championI
 func (c *RiotClient) GetLiveMatchBySummonerName(summonerName *string) ([]SanitizedRank, error) {
 	s, err := c.GetSummonerWithName(*summonerName)
 
-
 	if err != nil {
 		log.Println("err: ",  err)
 		return nil, err
 	}
 
 	liveMatch, err := c.GetSummonerLiveMatch(s)
-
 	if err != nil {
 		log.Println("err: ", err)
 		return nil, err
