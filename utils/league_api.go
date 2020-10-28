@@ -2,21 +2,11 @@ package utils
 
 import (
 	"github.com/KnutZuidema/golio/api"
-	"os"
-
-	"github.com/KnutZuidema/golio"
 )
 
-var client *golio.Client
 var Servers map[string]api.Region
 
-func GetClient() *golio.Client {
-	return client
-}
-
 func InitClient() {
-	client = golio.NewClient(os.Getenv("LEAGUE_API"))
-
 	Servers = map[string]api.Region{
 		"euw": api.RegionEuropeWest,
 		"eun": api.RegionEuropeNorthEast,

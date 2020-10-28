@@ -161,6 +161,26 @@ type SanitizedRank struct {
 	Flex         string
 }
 
+type Matchlist struct {
+	Matches    []*MatchReference `json:"matches"`
+	TotalGames int               `json:"totalGames"`
+	StartIndex int               `json:"startIndex"`
+	EndIndex   int               `json:"endIndex"`
+}
+
+// MatchReference contains information about a game by a single summoner
+type MatchReference struct {
+	Lane       string `json:"lane"`
+	GameID     int    `json:"gameId"`
+	Champion   int    `json:"champion"`
+	PlatformID string `json:"platformId"`
+	Season     int    `json:"season"`
+	Queue      int    `json:"queue"`
+	Role       string `json:"role"`
+	Timestamp  int    `json:"timestamp"`
+}
+
+
 type RiotClient struct {
 	BaseURL   string `json:"base_url"`
 	Token     string `json:"token"`
@@ -251,9 +271,7 @@ func (c *RiotClient) NewAgent(path string, query string) *gorequest.SuperAgent {
 
 	// create the actual super agent using the riot token, and also set different retry parameters
 	sa := gorequest.New().Get(url).Set("X-Riot-Token", c.Token).Timeout(10*time.Second).
-		// if something in general went wrong with the request
 		Retry(3, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError).
-		// if the rate limit aws exceeded
 		Retry(10, 5*time.Second, http.StatusTooManyRequests)
 
 	return sa
@@ -309,6 +327,23 @@ func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error
 	return &match, nil
 }
 
+func (c *RiotClient) GetListOfMatches(accountId string, begin, end int) (*Matchlist, error) {
+	var matches *Matchlist
+	endpoint := fmt.Sprintf("matchlists/by-account/%s?beginIndex=%d&endIndex=%d",
+		accountId, begin, end)
+	response, _, errs := c.NewAgent(endpoint, "").EndStruct(&matches)
+	if errs != nil {
+		LogErrors(errs)
+	}
+
+	if response.StatusCode != 200 {
+		log.Println("err: ", response.Status)
+		return nil, errors.New(response.Status)
+	}
+
+	return matches, nil
+}
+
 // Sanitize user input into a table format
 func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championId int) SanitizedRank {
 	t := "RED"
@@ -323,9 +358,9 @@ func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championI
 	return SanitizedRank{summonerName, t, champ.Name, "N/A", "N/A"}
 }
 
-func (c *RiotClient) GetLiveMatchBySummonerName(summonerName *string) ([]SanitizedRank, error) {
+func (c *RiotClient) GetLiveMatchBySummonerName(summonerName string) ([]SanitizedRank, error) {
 	// find the summoner in question
-	s, err := c.GetSummonerWithName(*summonerName)
+	s, err := c.GetSummonerWithName(summonerName)
 	if err != nil {
 		log.Println("err: ", err)
 		return nil, err
@@ -341,7 +376,6 @@ func (c *RiotClient) GetLiveMatchBySummonerName(summonerName *string) ([]Sanitiz
 	// create a wait group so that we can execute tasks concurrently, but still in an order
 	wg := sync.WaitGroup{}
 	wg.Add(len(liveMatch.Participants))
-
 	participants := make([]SanitizedRank, len(liveMatch.Participants))
 	for pi := range liveMatch.Participants {
 		go func(i int, p Participant) {
@@ -378,5 +412,5 @@ func (c *RiotClient) GetLiveMatchBySummonerName(summonerName *string) ([]Sanitiz
 		return participants[a].Team < participants[b].Team
 	})
 
-	return participants, err
+	return participants, nil
 }

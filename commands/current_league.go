@@ -20,7 +20,8 @@ func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.Message
 
 	client := utils.NewRiotClient(region, os.Getenv("LEAGUE_API"))
 	summonerName := args[1]
-	match, err := client.GetLiveMatchBySummonerName(&summonerName)
+	match, err := client.GetLiveMatchBySummonerName(summonerName)
+	var bt, rt []*discordgo.MessageEmbedField
 	if err == nil {
 		// create a new writer for the ascii table
 		buf := new(bytes.Buffer)
@@ -32,7 +33,6 @@ func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.Message
 		table.SetHeader([]string{"Team", "Champion", "Summoner", "Solo"})
 
 		// create message embed fields for both teams
-		var bt, rt []*discordgo.MessageEmbedField
 		headers := []string{"Champion", "Summoner", "Solo"}
 		for i := range headers {
 			bt = append(bt, &discordgo.MessageEmbedField{
