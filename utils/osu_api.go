@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 var key string
@@ -194,4 +195,18 @@ func InitApiKey() {
 		"C":  "<:bibelsC:753277059094020216>",
 		"D":  "<:bibelsD:753277123070001244>",
 	}
+}
+
+func (tp *OsuTopPlay) CalculateTopPlayAcc() string {
+	// format all the counts into numbers
+	missCount, _ := strconv.Atoi(tp.CountMiss)
+	count50, _ := strconv.Atoi(tp.Count50)
+	count100, _ := strconv.Atoi(tp.Count100)
+	count300, _ := strconv.Atoi(tp.Count300)
+
+	top := float64(50*count50+100*count100+300*count300)
+	bot := float64(300*(missCount+count300+count100+count50))
+	acc := top/bot
+
+	return fmt.Sprintf("%.2f", acc)
 }

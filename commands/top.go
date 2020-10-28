@@ -34,29 +34,27 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	var fields []*discordgo.MessageEmbedField
 
 	// we can use a loop since all the fields are similar in a sense
-	for index := range topPlays {
+	for _, play := range topPlays {
 		// load the beatmap so that we can get more information other than the ID
-		beatmap, err := utils.GetOsuBeatmap(topPlays[index].BeatmapID)
+		beatmap, err := utils.GetOsuBeatmap(play.BeatmapID)
 		if err != nil {
-			_, _ = session.ChannelMessage(msg.ChannelID,
-				fmt.Sprintf("Error getting beatmap information on top score #%d", index+1))
-			// if there was an error, still try to display rest of the top plays
 			continue
 		}
 
-		formattedPP := strings.Split(topPlays[index].PP, ".")
-		formattedValue := fmt.Sprintf("PP: %s, Score set: %s", formattedPP[0], topPlays[index].Date)
+		formattedPP := strings.Split(play.PP, ".")
+		formattedValue := fmt.Sprintf("PP: %s | Score set: %s | Acc: %s",
+			formattedPP[0], play.Date, play.CalculateTopPlayAcc())
 
 		// do all the needed bitwise calculations to get the mods; the error will never happen,
 		// but handle it for good merit!
-		mods, err := utils.GetMods(topPlays[index].EnabledMods)
+		mods, err := utils.GetMods(play.EnabledMods)
 		if err != nil {
 			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
 		}
 
 		formattedTitle := fmt.Sprintf("%s %s + %s",
-			utils.RankEmojis[topPlays[index].Rank], beatmap.Title, mods)
+			utils.RankEmojis[play.Rank], beatmap.Title, mods)
 
 		// finally add the new field to the fields array
 		fields = append(fields, &discordgo.MessageEmbedField{
