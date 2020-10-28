@@ -16,6 +16,10 @@ func SetLogging(status bool) {
 }
 
 func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
+	// ignore all messages created by the bot.
+	if msg.Author.ID == session.State.User.ID {
+		return
+	}
 	// tokenize the input
 	args := strings.Split(msg.Content, " ")
 

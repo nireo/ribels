@@ -8,7 +8,7 @@ import (
 // print all the available league of legends servers with their shorthand name
 func ServersCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	message := ""
-	for server, _ := range utils.Servers {
+	for server := range utils.ValidRegions {
 		message += server+"\n"
 	}
 

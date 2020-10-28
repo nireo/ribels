@@ -10,18 +10,10 @@ import (
 
 // This command returns the first 10 top plays of a user!
 func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	// Check if a user argument is provided otherwise get linked osuname
-	var osuName string
-	if len(args) > 1 {
-		osuName = utils.FormatName(args[1:])
-	} else {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
-		}
-
-		osuName = user.OsuName
+	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Error getting osu username")
+		return
 	}
 
 	topPlays, err := utils.GetModeTopPlays(osuName, "standard")
@@ -42,7 +34,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		}
 
 		formattedPP := strings.Split(play.PP, ".")
-		formattedValue := fmt.Sprintf("PP: %s | Score set: %s | Acc: %s",
+		formattedValue := fmt.Sprintf("PP: %s | Score set: %s | Acc: %s%%",
 			formattedPP[0], play.Date, play.CalculateTopPlayAcc())
 
 		// do all the needed bitwise calculations to get the mods; the error will never happen,

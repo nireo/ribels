@@ -167,12 +167,9 @@ type RiotClient struct {
 	Champions Champions
 }
 
-var riotKey string
 var ValidRegions map[string]string
 
-func InitAPI(k string) {
-	riotKey = k
-
+func InitAPI() {
 	ValidRegions = map[string]string{
 		"euw": "euw1",
 		"eun": "eun1",
@@ -233,7 +230,7 @@ func CheckValidRegion(region string) (string, error) {
 	return value, nil
 }
 
-func NewRiotClient(region string) RiotClient {
+func NewRiotClient(region, token string) RiotClient {
 	// we don't need to check if the key is valid, since that is done outside in another function
 	sa := gorequest.New().Timeout(10*time.Second).
 		Retry(2, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError)
@@ -242,7 +239,7 @@ func NewRiotClient(region string) RiotClient {
 	c := ParseChampions(sa)
 	return RiotClient{
 		BaseURL:   "https://" + region + ".api.riotgames.com/lol",
-		Token:     riotKey,
+		Token:     token,
 		Champions: *c,
 	}
 }

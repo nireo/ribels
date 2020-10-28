@@ -27,6 +27,7 @@ func main() {
 
 	// init the league of legends api
 	utils.InitClient()
+	utils.InitAPI()
 
 	// check if logging is enabled, and set the logging in the message handler
 	status, _ := strconv.ParseBool(os.Getenv("LOGGING"))

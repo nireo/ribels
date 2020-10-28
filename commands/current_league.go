@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/nireo/ribels/utils"
 	"github.com/olekukonko/tablewriter"
-	"strings"
+	"os"
 )
 
 func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
@@ -18,8 +18,8 @@ func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.Message
 		return
 	}
 
-	client := utils.NewRiotClient(region)
-	summonerName := strings.Join(args[1:], " ")
+	client := utils.NewRiotClient(region, os.Getenv("LEAGUE_API"))
+	summonerName := args[1]
 	match, err := client.GetLiveMatchBySummonerName(&summonerName)
 	if err == nil {
 		// create a new writer for the ascii table

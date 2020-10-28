@@ -8,19 +8,10 @@ import (
 )
 
 func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	var osuName string
-
-	// check if the user has provided an argument, otherwise load the osuname from the database
-	if len(args) > 1 {
-		osuName = utils.FormatName(args[1:])
-	} else {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
-		}
-
-		osuName = user.OsuName
+	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Could not parse osu user")
+		return
 	}
 
 	// get the most recent play from user
@@ -38,46 +29,40 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	}
 
 	// make fields for the rich embed message
-	var fields []*discordgo.MessageEmbedField
 	formattedCounts := fmt.Sprintf("[%s/%s/%s/%s]",
 		recentPlay.Count300, recentPlay.Count100, recentPlay.Count50, recentPlay.CountMiss)
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Counts",
-		Value:  formattedCounts,
-		Inline: true,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Score",
-		Value:  recentPlay.Score,
-		Inline: true,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Combo",
-		Value: fmt.Sprintf("[%sx/%sx]", recentPlay.MaxCombo, beatmap.MaxCombo),
-		Inline: true,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Date",
-		Value:  recentPlay.Date,
-		Inline: true,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Difficulty",
-		Value: beatmap.Difficulty,
-		Inline: true,
-	})
-
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Rank",
-		Value: utils.RankEmojis[recentPlay.Rank],
-		Inline: true,
-	})
+	fields := []*discordgo.MessageEmbedField{
+		{
+			Name:   "Counts",
+			Value:  formattedCounts,
+			Inline: true,
+		},
+		{
+			Name:   "Score",
+			Value:  recentPlay.Score,
+			Inline: true,
+		},
+		{
+			Name: "Combo",
+			Value: fmt.Sprintf("[%sx/%sx]", recentPlay.MaxCombo, beatmap.MaxCombo),
+			Inline: true,
+		},
+		{
+			Name:   "Date",
+			Value:  recentPlay.Date,
+			Inline: true,
+		},
+		{
+			Name: "Difficulty",
+			Value: beatmap.Difficulty,
+			Inline: true,
+		},
+		{
+			Name: "Rank",
+			Value: utils.RankEmojis[recentPlay.Rank],
+			Inline: true,
+		},
+	}
 
 	// create the actual embed
 	var messageEmbed discordgo.MessageEmbed

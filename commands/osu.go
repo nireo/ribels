@@ -9,18 +9,10 @@ import (
 // either the user from an argument or a user from the database
 func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// check if a user argument is provided, otherwise load user from database
-	var osuName string
-	if len(args) > 1 {
-		osuName = utils.FormatName(args[1:])
-	} else {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID,
-				"Your osu! profile is not set. To do this type $set osu_name")
-			return
-		}
-
-		osuName = user.OsuName
+	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Could not parse osu name")
+		return
 	}
 
 	// The osu api gives every single request as an array so we just need to extract the first element
@@ -31,42 +23,38 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	}
 
 	// create embed fields
-	var fields []*discordgo.MessageEmbedField
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Playcount",
-		Value: selectedUser.Playcount,
-		Inline: false,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Rank",
-		Value: selectedUser.PPRank,
-		Inline: false,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Playtime",
-		Value: selectedUser.SecondsPlayed,
-		Inline: false,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Level",
-		Value: selectedUser.Level,
-		Inline: false,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Country",
-		Value: selectedUser.Country,
-		Inline: false,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Accuracy",
-		Value: selectedUser.Accuracy,
-		Inline: false,
-	})
+	fields := []*discordgo.MessageEmbedField{
+		{
+			Name: "Playcount",
+			Value: selectedUser.Playcount,
+			Inline: false,
+		},
+		{
+			Name: "Rank",
+			Value: selectedUser.PPRank,
+			Inline: false,
+		},
+		{
+			Name: "Playtime",
+			Value: selectedUser.SecondsPlayed,
+			Inline: false,
+		},
+		{
+			Name: "Level",
+			Value: selectedUser.Level,
+			Inline: false,
+		},
+		{
+			Name: "Country",
+			Value: selectedUser.Country,
+			Inline: false,
+		},
+		{
+			Name: "Accuracy",
+			Value: selectedUser.Accuracy,
+			Inline: false,
+		},
+	}
 
 	// create the final embed
 	var messageEmbed discordgo.MessageEmbed

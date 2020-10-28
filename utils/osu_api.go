@@ -118,21 +118,13 @@ func GetOsuBeatmap(beatmapID string) (*OsuBeatmap, error) {
 	return singleMap, nil
 }
 
+var mods map[string]uint8
+
 func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
-	var requestURL string
 	var topplays []OsuTopPlay
-	switch mode {
-	case "mania":
-		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=3", username, key)
-	case "standard":
-		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s", username, key)
-	case "taiko":
-		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&m=1", username, key)
-	case "ctb":
-		requestURL = fmt.Sprintf("https://osu.ppy.sh/api/get_user/best?u=%s&k=%s&m=2", username, key)
-	default:
-		return topplays, errors.New("Unsupported mode")
-	}
+
+	requestURL := fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&limit=5&m=%d",
+		username, key, mods[mode])
 
 	response, err := http.Get(requestURL)
 	if err != nil {
@@ -145,7 +137,6 @@ func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
 	if err != nil {
 		return topplays, err
 	}
-
 	if err := json.Unmarshal(body, &topplays); err != nil {
 		return topplays, err
 	}
@@ -195,6 +186,13 @@ func InitApiKey() {
 		"C":  "<:bibelsC:753277059094020216>",
 		"D":  "<:bibelsD:753277123070001244>",
 	}
+
+	mods = map[string]uint8{
+		"standard": 0,
+		"taiko":    1,
+		"ctb":      2,
+		"mania":    3,
+	}
 }
 
 func (tp *OsuTopPlay) CalculateTopPlayAcc() string {
@@ -204,9 +202,27 @@ func (tp *OsuTopPlay) CalculateTopPlayAcc() string {
 	count100, _ := strconv.Atoi(tp.Count100)
 	count300, _ := strconv.Atoi(tp.Count300)
 
-	top := float64(50*count50+100*count100+300*count300)
-	bot := float64(300*(missCount+count300+count100+count50))
-	acc := top/bot
+	top := float64(50*count50 + 100*count100 + 300*count300)
+	bot := float64(300 * (missCount + count300 + count100 + count50))
+	acc := (top / bot) * 100
 
 	return fmt.Sprintf("%.2f", acc)
 }
+
+func GetOsuUsername(discordId string, args []string) (string, error) {
+	var osuName string
+	if len(args) > 1 {
+		osuName = FormatName(args[1:])
+	} else {
+		user, err := CheckIfSet(discordId)
+		if err != nil {
+			return osuName, errors.New("could not find user")
+		}
+
+		osuName = user.OsuName
+	}
+
+	return osuName, nil
+}
+
+

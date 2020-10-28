@@ -9,17 +9,10 @@ import (
 )
 
 func CTBCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	var osuName string
-	if len(args) > 1 {
-		osuName = utils.FormatName(args[1:])
-	} else {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
-		}
-
-		osuName = user.OsuName
+	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Could not parse osu name")
+		return
 	}
 
 	topPlays, err := utils.GetModeTopPlays(osuName, "mania")

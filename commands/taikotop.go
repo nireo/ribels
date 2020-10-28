@@ -9,17 +9,10 @@ import (
 )
 
 func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	var osuName string
-	if len(args) > 1 {
-		osuName = utils.FormatName(args[1:])
-	} else {
-		user, err := utils.CheckIfSet(msg.Author.ID)
-		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, "Not set in database")
-			return
-		}
-
-		osuName = user.OsuName
+	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Error getting osu name")
+		return
 	}
 
 	topPlays, err := utils.GetModeTopPlays(osuName, "mania")
@@ -31,22 +24,19 @@ func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCr
 	var fields []*discordgo.MessageEmbedField
 
 	// we can use a loop since all the fields are similar in a sense
-	for index := range topPlays {
+	for _, play := range topPlays {
 		// load the beatmap so that we can get more information other than the ID
-		beatmap, err := utils.GetOsuBeatmap(topPlays[index].BeatmapID)
+		beatmap, err := utils.GetOsuBeatmap(play.BeatmapID)
 		if err != nil {
-			_, _ = session.ChannelMessage(msg.ChannelID,
-				fmt.Sprintf("Error getting beatmap information on top score #%d", index+1))
-			// if there was an error, still try to display rest of the top plays
 			continue
 		}
 
-		formattedPP := strings.Split(topPlays[index].PP, ".")
-		formattedValue := fmt.Sprintf("PP: %s, Score set: %s", formattedPP[0], topPlays[index].Date)
+		formattedPP := strings.Split(play.PP, ".")
+		formattedValue := fmt.Sprintf("PP: %s, Score set: %s", formattedPP[0], play.Date)
 
 		// do all the needed bitwise calculations to get the mods; the error will never happen,
 		// but handle it for good merit!
-		mods, err := utils.GetMods(topPlays[index].EnabledMods)
+		mods, err := utils.GetMods(play.EnabledMods)
 		if err != nil {
 			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
