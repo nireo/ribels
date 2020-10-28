@@ -6,26 +6,33 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/nireo/ribels/utils"
 	"github.com/olekukonko/tablewriter"
-	"os"
 	"strings"
 )
 
 func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	content := ""
 	sendMessage, err := session.ChannelMessageSend(msg.ChannelID, "Searching...")
-	client := utils.NewRiotClient("euw1", os.Getenv("LEAGUE_API"), 10)
+	region, err := utils.CheckValidRegion(args[2])
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Problem with parsing server")
+		return
+	}
+
+	client := utils.NewRiotClient(region)
 	summonerName := strings.Join(args[1:], " ")
 	match, err := client.GetLiveMatchBySummonerName(&summonerName)
-
 	if err == nil {
+		// create a new writer for the ascii table
 		buf := new(bytes.Buffer)
 		table := tablewriter.NewWriter(buf)
+
+		// table settings
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		table.SetCaption(true, fmt.Sprintf("Current match: %session", summonerName))
 		table.SetHeader([]string{"Team", "Champion", "Summoner", "Solo"})
 
+		// create message embed fields for both teams
 		var bt, rt []*discordgo.MessageEmbedField
-
 		headers := []string{"Champion", "Summoner", "Solo"}
 		for i := range headers {
 			bt = append(bt, &discordgo.MessageEmbedField{
@@ -40,46 +47,54 @@ func CurrentLeagueGameCommand(session *discordgo.Session, msg *discordgo.Message
 			})
 		}
 
-		for i := range match {
+		// for each player in the match add a message embed field
+		for _, player := range match {
 			row := []*discordgo.MessageEmbedField{
 				{
-					Value:  match[i].Champion,
+					Value:  player.Champion,
 					Inline: true,
 				},
 				{
-					Value:  match[i].SummonerName,
+					Value:  player.SummonerName,
 					Inline: true,
 				},
 				{
-					Value:  match[i].Solo,
+					Value:  player.Solo,
 					Inline: true,
 				},
 			}
 
-			if match[i].Team == "BLUE" {
+			if player.Team == "BLUE" {
 				bt = append(bt, row...)
-			} else if match[i].Team == "RED" {
+			} else if player.Team == "RED" {
 				rt = append(rt, row...)
 			}
 		}
 
-		var d [][]string
-		for i := range match {
-			d = append(d, []string{
-				match[i].Team,
-				match[i].Champion,
-				match[i].SummonerName,
-				match[i].Solo},
+		//create the table
+		var tab [][]string
+		for _, m := range match {
+			// add row to table
+			tab = append(tab, []string{
+				m.Team,
+				m.Champion,
+				m.SummonerName,
+				m.Solo},
 			)
 		}
 
-		table.AppendBulk(d)
+		table.AppendBulk(tab)
 		table.Render()
+
+		// ``` are used this way discord makes the message format more flexible
 		content = "```" + buf.String() + "```"
 	}
 
+	// if there was no table, an error has occured so we prompt the user
 	if content == "" {
-		content = "ERROR: Summoner most likely not in a game"
+		content = "Summoner most likely not in a game"
 	}
+
+	// give out the table with the current game
 	_, _ = session.ChannelMessageEdit(sendMessage.ChannelID, sendMessage.ID, content)
 }

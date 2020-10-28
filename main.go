@@ -40,6 +40,7 @@ func main() {
 
 	// add the message handler, which handles all the commands
 	dg.AddHandler(handlers.MessageHandler)
+	dg.AddHandler(handlers.ReadyHandler)
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 
 	if err := dg.Open(); err != nil {

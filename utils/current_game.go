@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/parnurzeal/gorequest"
 	"log"
@@ -10,7 +11,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"errors"
 )
 
 type Champions struct {
@@ -167,6 +167,35 @@ type RiotClient struct {
 	Champions Champions
 }
 
+var riotKey string
+var ValidRegions map[string]string
+
+func InitAPI(k string) {
+	riotKey = k
+
+	ValidRegions = map[string]string{
+		"euw": "euw1",
+		"eun": "eun1",
+		"br":  "br1",
+		"kr":  "kr",
+		"jp":  "jp1",
+		"las": "la2",
+		"lan": "la1",
+		"na":  "na1",
+		"oc":  "oc1",
+		"tr":  "tr1",
+		"ru":  "ru",
+	}
+}
+
+// print out all the errors from a list
+func LogErrors(errs []error) {
+	for _, err := range errs {
+		log.Print("err: ", err)
+	}
+}
+
+// load champion with key, with this we can easily check summoner names
 func (champions *Champions) GetChampionWithKey(key string) *Champion {
 	for i := range champions.Data {
 		if key == champions.Data[i].Key {
@@ -174,9 +203,11 @@ func (champions *Champions) GetChampionWithKey(key string) *Champion {
 		}
 	}
 
+	// return nil if the user is not found
 	return nil
 }
 
+// Parse champion data from the riot api
 func ParseChampions(sa *gorequest.SuperAgent) *Champions {
 	champUrl := "http://ddragon.leagueoflegends.com/cdn/10.7.1/data/en_US/champion.json"
 	var champs *Champions
@@ -184,47 +215,63 @@ func ParseChampions(sa *gorequest.SuperAgent) *Champions {
 		Get(champUrl).
 		EndStruct(&champs)
 
-	if nil != errs {
-		for i := range errs {
-			log.Print("[ERROR] ", errs[i])
-		}
+	if errs != nil {
+		LogErrors(errs)
 	}
 
 	return champs
 }
 
-func NewRiotClient(region string, token string, timeout int) RiotClient {
+// Check if a shorthand is a valid and return that actual string,
+// also return a error, if there region is not valid
+func CheckValidRegion(region string) (string, error) {
+	value, ok := ValidRegions[strings.ToLower(region)]
+	if !ok {
+		return "", errors.New("region is not valid $lol-servers for all regions")
+	}
+
+	return value, nil
+}
+
+func NewRiotClient(region string) RiotClient {
+	// we don't need to check if the key is valid, since that is done outside in another function
 	sa := gorequest.New().Timeout(10*time.Second).
 		Retry(2, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError)
 
+	// load all the champions, so that we can use them later
 	c := ParseChampions(sa)
-
 	return RiotClient{
 		BaseURL:   "https://" + region + ".api.riotgames.com/lol",
-		Token:     token,
+		Token:     riotKey,
 		Champions: *c,
 	}
 }
 
+// NewAgent creates an returns a new request SuperAgent
 func (c *RiotClient) NewAgent(path string, query string) *gorequest.SuperAgent {
+	// form a request url using query parameters
 	url := strings.Join([]string{c.BaseURL, path, query}, "/")
+
+	// create the actual super agent using the riot token, and also set different retry parameters
 	sa := gorequest.New().Get(url).Set("X-Riot-Token", c.Token).Timeout(10*time.Second).
+		// if something in general went wrong with the request
 		Retry(3, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError).
-		Retry(10, 5*time.Second, 429)
+		// if the rate limit aws exceeded
+		Retry(10, 5*time.Second, http.StatusTooManyRequests)
+
 	return sa
 }
 
 func (c *RiotClient) GetSummonerWithName(name string) (*Summoner, error) {
-	summoner := Summoner{}
+	var summoner Summoner
+	// create a new superAgent and request summoner information from api
 	response, _, errs := c.NewAgent("summoner/v4/summoners/by-name", name).EndStruct(&summoner)
-
 	if errs != nil {
-		for _, err := range errs {
-				log.Print("err: ", err)
-		}
+		LogErrors(errs)
 	}
 
-	if 200 != response.StatusCode {
+	// check if the request was valid
+	if response.StatusCode != 200 {
 		log.Println("err: ", response.Status)
 		return nil, errors.New(response.Status)
 	}
@@ -232,17 +279,16 @@ func (c *RiotClient) GetSummonerWithName(name string) (*Summoner, error) {
 	return &summoner, nil
 }
 
+// Returns the solo&duo and flex ranks of a summoner with param: id
 func (c *RiotClient) GetSummonerRankWithID(id string) ([]SummonerRank, error) {
+	// array since summoners have 2 ranks: solo&duo and flex
 	var rank []SummonerRank
 	response, _, errs := c.NewAgent("league/v4/entries/by-summoner", id).EndStruct(&rank)
-
 	if errs != nil {
-		for _, err := range errs {
-			log.Println("err: ", err)
-		}
+		LogErrors(errs)
 	}
 
-	if 200 != response.StatusCode {
+	if response.StatusCode != 200 {
 		log.Println("err: ", response.Status)
 		return nil, errors.New(response.Status)
 	}
@@ -255,9 +301,7 @@ func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error
 	response, _, errs := c.NewAgent("spectator/v4/active-games/by-summoner", summoner.ID).EndStruct(&match)
 
 	if errs != nil {
-		for _, err := range errs {
-			log.Println("err: ", err)
-		}
+		LogErrors(errs)
 	}
 
 	if response.StatusCode != 200 {
@@ -268,55 +312,74 @@ func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error
 	return &match, nil
 }
 
+// Sanitize user input into a table format
 func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championId int) SanitizedRank {
 	t := "RED"
 	if team == 100 {
 		t = "BLUE"
 	}
+
+	// get the champion data from the preloaded champion data.
 	champ := c.Champions.GetChampionWithKey(strconv.Itoa(championId))
+
+	// Return N/A in the place of ranks, since this is filled later!
 	return SanitizedRank{summonerName, t, champ.Name, "N/A", "N/A"}
 }
 
 func (c *RiotClient) GetLiveMatchBySummonerName(summonerName *string) ([]SanitizedRank, error) {
+	// find the summoner in question
 	s, err := c.GetSummonerWithName(*summonerName)
-
 	if err != nil {
-		log.Println("err: ",  err)
+		log.Println("err: ", err)
 		return nil, err
 	}
 
+	// get the live match, returns an error if the user is not in a match
 	liveMatch, err := c.GetSummonerLiveMatch(s)
 	if err != nil {
 		log.Println("err: ", err)
 		return nil, err
 	}
 
+	// create a wait group so that we can execute tasks concurrently, but still in an order
 	wg := sync.WaitGroup{}
 	wg.Add(len(liveMatch.Participants))
-	ps := make([]SanitizedRank, len(liveMatch.Participants))
+
+	participants := make([]SanitizedRank, len(liveMatch.Participants))
 	for pi := range liveMatch.Participants {
 		go func(i int, p Participant) {
+			// make sure the wait counter is decreased b
 			defer wg.Done()
-			r, err := c.GetSummonerRankWithID(p.SummonerID)
 
+			// get the summoner's rank
+			r, err := c.GetSummonerRankWithID(p.SummonerID)
 			if err != nil {
 				log.Println("[ERROR]", err)
 				return
-			} else {
-				sr := c.NewSanitizedRank(p.SummonerName, p.TeamID, p.ChampionID)
-				for ri := range r {
-					if r[ri].QueueType == "RANKED_SOLO_5x5" {
-						sr.Solo = fmt.Sprintf("%s %s", r[ri].Tier, r[ri].Rank)
-					}
-					if r[ri].QueueType == "RANKED_FLEX_SR" {
-						sr.Flex = fmt.Sprintf("%s %s", r[ri].Tier, r[ri].Rank)
-					}
-				}
-				ps[i] = sr
 			}
+
+			// format the ranks
+			sr := c.NewSanitizedRank(p.SummonerName, p.TeamID, p.ChampionID)
+			for ri := range r {
+				if r[ri].QueueType == "RANKED_SOLO_5x5" {
+					sr.Solo = fmt.Sprintf("%s %s", r[ri].Tier, r[ri].Rank)
+				}
+				if r[ri].QueueType == "RANKED_FLEX_SR" {
+					sr.Flex = fmt.Sprintf("%s %s", r[ri].Tier, r[ri].Rank)
+				}
+			}
+
+			participants[i] = sr
 		}(pi, liveMatch.Participants[pi])
 	}
+
+	// wait until the wait counter is 0, meaning all the processing is done
 	wg.Wait()
-	sort.SliceStable(ps, func(i, j int) bool { return ps[i].Team < ps[j].Team })
-	return ps, err
+
+	// sort the users so that they are grouped with their own teams
+	sort.SliceStable(participants, func(a, b int) bool {
+		return participants[a].Team < participants[b].Team
+	})
+
+	return participants, err
 }

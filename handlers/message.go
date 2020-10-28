@@ -57,6 +57,8 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		go commands.RemoveLolCommandHandler(session, msg)
 	case "$lol-curr":
 		go commands.CurrentLeagueGameCommand(session, msg, args)
+	case "$osu-remove":
+		go commands.RemoveOsuCommandHandler(session, msg)
 	// if we can't find a matching command just close the handler
 	default:
 		return
