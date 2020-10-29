@@ -68,6 +68,24 @@ type Champion struct {
 	} `json:"stats"`
 }
 
+type ChampionInfo struct {
+	FreeChampionIDsForNewPlayers []int `json:"freeChampionIDsForNewPlayers"`
+	FreeChampionIDs              []int `json:"freeChampionIDs"`
+	MaxNewPlayerLevel            int   `json:"maxNewPlayerLevel"`
+}
+
+type ChampionMastery struct {
+	ChestGranted                 bool   `json:"chestGranted"`
+	ChampionLevel                int    `json:"championLevel"`
+	ChampionPoints               int    `json:"championPoints"`
+	ChampionID                   int    `json:"championId"`
+	ChampionPointsUntilNextLevel int    `json:"championPointsUntilNextLevel"`
+	LastPlayTime                 int    `json:"lastPlayTime"`
+	TokensEarned                 int    `json:"tokensEarned"`
+	ChampionPointsSinceLastLevel int    `json:"championPointsSinceLastLevel"`
+	SummonerID                   string `json:"summonerId"`
+}
+
 type Summoner struct {
 	ID            string `json:"id"`
 	AccountID     string `json:"accountid"`
@@ -311,6 +329,21 @@ func (c *RiotClient) GetSummonerRankWithID(id string) ([]SummonerRank, error) {
 	return rank, nil
 }
 
+func (c *RiotClient) GetFreeRotation() (*ChampionInfo, error) {
+	var freeRotation *ChampionInfo
+	response, _, errs := c.NewAgent("platform/v3/champion-rotations", "").EndStruct(&freeRotation)
+	if errs != nil {
+		LogErrors(errs)
+	}
+
+	if response.StatusCode != 200 {
+		log.Println("err: ", response.Status)
+		return nil, errors.New(response.Status)
+	}
+
+	return freeRotation, nil
+}
+
 func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error) {
 	var match LiveMatch
 	response, _, errs := c.NewAgent("spectator/v4/active-games/by-summoner", summoner.ID).EndStruct(&match)
@@ -342,6 +375,40 @@ func (c *RiotClient) GetListOfMatches(accountId string, begin, end int) (*Matchl
 	}
 
 	return matches, nil
+}
+
+func (c *RiotClient) ListsSummonerMasteries(summonerID string) ([]*ChampionMastery, error) {
+	var masteries []*ChampionMastery
+	endpoint := fmt.Sprintf("champion-mastery/v4/champion-masteries/by-summoner/%s", summonerID)
+	response, _, errs := c.NewAgent(endpoint, "").EndStruct(&masteries)
+	if errs != nil {
+		LogErrors(errs)
+	}
+
+	if response.StatusCode != 200 {
+		log.Println("err: ", response.Status)
+		return nil, errors.New(response.Status)
+	}
+
+	return masteries, nil
+}
+
+func (c *RiotClient) GetSingleChampionMastery(summonerID, championID string) (
+	*ChampionMastery, error) {
+	var mastery *ChampionMastery
+	endpoint := fmt.Sprintf("champion-mastery/v4/champion-masteries/by-summoner/%s/by-champion/%s",
+		summonerID, championID)
+	response, _, errs := c.NewAgent(endpoint, "").EndStruct(&mastery)
+	if errs != nil {
+		LogErrors(errs)
+	}
+
+	if response.StatusCode != 200 {
+		log.Println("err: ", response.Status)
+		return nil, errors.New(response.Status)
+	}
+
+	return mastery, nil
 }
 
 // Sanitize user input into a table format
