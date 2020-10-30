@@ -5,6 +5,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/nireo/ribels/utils"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -68,8 +69,10 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 			name = "Ranked Flex"
 		}
 
-		content := fmt.Sprintf("%s %s %d | W/L [%d/%d]",
-			rank.Tier, rank.Rank, rank.LeaguePoints, rank.Wins, rank.Losses)
+		winRate := float64(rank.Wins)/float64(rank.Wins+rank.Losses)
+
+		content := fmt.Sprintf("%s %s %d | W/L [%d/%d] %0.f%%",
+			rank.Tier, rank.Rank, rank.LeaguePoints, rank.Wins, rank.Losses, winRate*100.0)
 
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   name,
@@ -77,6 +80,32 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 			Inline: false,
 		})
 	}
+
+	// get the most played champs
+	masteries, err := client.ListsSummonerMasteries(summoner.ID)
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "Problem getting champion masteries")
+		return
+	}
+
+	sort.SliceStable(masteries, func(a, b int) bool {
+		return masteries[a].ChampionPoints > masteries[b].ChampionPoints
+	})
+
+	fieldValue := ""
+	for _, champion := range masteries[:5] {
+		championKey := strconv.Itoa(champion.ChampionID)
+		champ := client.Champions.GetChampionWithKey(championKey)
+		if champ != nil {
+			fieldValue += fmt.Sprintf("%s (%d)\n", champ.Name, champion.ChampionPoints)
+		}
+	}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "Most played champions",
+		Value: fieldValue,
+		Inline: false,
+	})
 
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Title = "Profile information"
