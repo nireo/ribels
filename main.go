@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/nireo/ribels/commands"
 	"log"
 	"os"
 	"os/signal"
@@ -33,6 +34,8 @@ func main() {
 
 	utils.SetPrefix(os.Getenv("PREFIX"))
 
+	commands.InitCommandsMap()
+
 	// check if logging is enabled, and set the logging in the message handler
 	status, _ := strconv.ParseBool(os.Getenv("LOGGING"))
 	handlers.SetLogging(status)
@@ -47,12 +50,10 @@ func main() {
 	dg.AddHandler(handlers.MessageHandler)
 	dg.AddHandler(handlers.ReadyHandler)
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
-
 	if err := dg.Open(); err != nil {
 		log.Fatal("Error opening connection")
 	}
 
-	log.Print("Bot is now running")
 	log.Printf("Time to start: %s", time.Since(startTime))
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
