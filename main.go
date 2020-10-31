@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
@@ -14,6 +15,8 @@ import (
 )
 
 func main() {
+
+	startTime := time.Now()
 	// Load all the environment variables from .env
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Problem loading environment file")
@@ -27,6 +30,8 @@ func main() {
 
 	// init the league of legends api
 	utils.InitAPI()
+
+	utils.SetPrefix(os.Getenv("PREFIX"))
 
 	// check if logging is enabled, and set the logging in the message handler
 	status, _ := strconv.ParseBool(os.Getenv("LOGGING"))
@@ -48,6 +53,7 @@ func main() {
 	}
 
 	log.Print("Bot is now running")
+	log.Printf("Time to start: %s", time.Since(startTime))
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc

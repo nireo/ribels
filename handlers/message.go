@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/nireo/ribels/utils"
 	"log"
 	"strings"
 
@@ -31,37 +32,37 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	// For each command create a goroutine, so basically concurrently execute all commands!
 	switch args[0] {
-	case "$set":
+	case utils.FormatCommand("set"):
 		go commands.SetCommandHandler(session, msg, args)
-	case "$recent":
+	case utils.FormatCommand("recent"):
 		go commands.RecentCommandHandler(session, msg, args)
-	case "$osu":
+	case utils.FormatCommand("osu"):
 		go commands.OsuCommandHandler(session, msg, args)
-	case "$top":
+	case utils.FormatCommand("top"):
 		go commands.TopCommandHandler(session, msg, args)
-	case "$help":
+	case utils.FormatCommand("help"):
 		go commands.HelpCommandHandler(session, msg)
-	case "$github":
+	case utils.FormatCommand("github"):
 		go commands.GithubCommandHandler(session, msg)
-	case "$maniatop":
+	case utils.FormatCommand("maniatop"):
 		go commands.ManiaTopHandler(session, msg, args)
-	case "$taikotop":
+	case utils.FormatCommand("taikotop"):
 		go commands.TaikoTopCommandHandler(session, msg, args)
-	case "$ctbtop":
+	case utils.FormatCommand("ctbtop"):
 		go commands.CTBCommandHandler(session, msg, args)
-	case "$map":
+	case utils.FormatCommand("map"):
 		go commands.MapCommandHandler(session, msg, args)
-	case "$set-lol":
+	case utils.FormatCommand("set-lol"):
 		go commands.SetLeagueCommandHandler(session, msg, args)
-	case "$lol":
+	case utils.FormatCommand("lol"):
 		go commands.LeagueProfileCommandHandler(session, msg, args)
-	case "$lol-servers":
+	case utils.FormatCommand("servers"):
 		go commands.ServersCommandHandler(session, msg)
-	case "$lol-remove":
+	case utils.FormatCommand("lol-remove"):
 		go commands.RemoveLolCommandHandler(session, msg)
-	case "$lol-curr":
+	case utils.FormatCommand("lol-curr"):
 		go commands.CurrentLeagueGameCommand(session, msg, args)
-	case "$osu-remove":
+	case utils.FormatCommand("osu-remove"):
 		go commands.RemoveOsuCommandHandler(session, msg)
 	// if we can't find a matching command just close the handler
 	default:
