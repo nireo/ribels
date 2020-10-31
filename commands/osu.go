@@ -61,6 +61,7 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Title = utils.UnFormatName(selectedUser.Username)
 	messageEmbed.Fields = fields
 	messageEmbed.Type = "rich"
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

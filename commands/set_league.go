@@ -24,9 +24,9 @@ func SetLeagueCommandHandler(session *discordgo.Session,
 		return
 	}
 
-	if _, ok := utils.Servers[strings.ToLower(args[2])]; !ok {
+	if _, ok := utils.ValidRegions[strings.ToLower(args[2])]; !ok {
 		_, _ = session.ChannelMessageSend(msg.ChannelID,
-			"Problem parsing league server")
+			"Problem parsin league server")
 		return
 	}
 

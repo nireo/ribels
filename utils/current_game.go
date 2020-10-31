@@ -242,16 +242,6 @@ func (champions *Champions) GetChampionWithKey(key string) *Champion {
 	return nil
 }
 
-func (champions *Champions) GetChampionWithID(id string) *Champion {
-	for i := range champions.Data {
-		if id == champions.Data[i].ID {
-			return champions.Data[i]
-		}
-	}
-
-	return nil
-}
-
 // Parse champion data from the riot api
 func ParseChampions(sa *gorequest.SuperAgent) *Champions {
 	champUrl := "http://ddragon.leagueoflegends.com/cdn/10.7.1/data/en_US/champion.json"

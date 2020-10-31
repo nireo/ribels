@@ -59,6 +59,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Title = fmt.Sprintf("osu! Standard top plays for %s", utils.UnFormatName(osuName))
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

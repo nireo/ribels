@@ -55,6 +55,7 @@ func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCr
 	messageEmbed.Title = fmt.Sprintf("osu! Taiko top plays for %s", utils.UnFormatName(osuName))
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

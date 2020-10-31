@@ -58,6 +58,8 @@ func CTBCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	messageEmbed.Title = fmt.Sprintf("osu! Catch the beat top plays for %s", utils.UnFormatName(osuName))
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
+	messageEmbed.Color = 44504
+
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

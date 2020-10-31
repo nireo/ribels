@@ -7,6 +7,8 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
@@ -48,38 +50,58 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 	}
 
 	var fields []*discordgo.MessageEmbedField
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Username",
-		Value:  summoner.Name,
-		Inline: false,
-	})
-
 	levelString := strconv.Itoa(summoner.SummonerLevel)
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Level",
 		Value:  levelString,
+		Inline: true,
+	})
+
+	t := time.Unix(summoner.Revisiondate, 0)
+	strDate := t.Format(time.Stamp)
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Last played",
+		Value:  strDate,
+		Inline: true,
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "\u200B",
+		Value: "\u200B",
 		Inline: false,
 	})
 
 	for _, rank := range ranks {
 		var name string
 		if rank.QueueType == "RANKED_SOLO_5x5" {
-			name = "Ranked Solo/Duo"
+			name = "*Ranked Solo/Duo*"
 		} else {
-			name = "Ranked Flex"
+			name = "*Ranked Flex*"
 		}
 
 		winRate := float64(rank.Wins)/float64(rank.Wins+rank.Losses)
 
-		content := fmt.Sprintf("%s %s %d | W/L [%d/%d] %0.f%%",
-			rank.Tier, rank.Rank, rank.LeaguePoints, rank.Wins, rank.Losses, winRate*100.0)
+		formattedDivision := fmt.Sprintf(strings.Title(strings.ToLower(rank.Tier)))
+
+		content := fmt.Sprintf("**%s %s** \n **%d LP**  %dW %dL \n Win Ratio %0.f%%",
+			formattedDivision, rank.Rank, rank.LeaguePoints, rank.Wins, rank.Losses, winRate*100.0)
+
+		if rank.MiniSeries.Progress != "" {
+			content += fmt.Sprintf("\nPromos: %dW %dL", rank.MiniSeries.Wins, rank.MiniSeries.Losses)
+		}
 
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   name,
 			Value:  content,
-			Inline: false,
+			Inline: true,
 		})
 	}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name: "\u200B",
+		Value: "\u200B",
+		Inline: false,
+	})
 
 	// get the most played champs
 	masteries, err := client.ListsSummonerMasteries(summoner.ID)
@@ -108,9 +130,10 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 	})
 
 	var messageEmbed discordgo.MessageEmbed
-	messageEmbed.Title = "Profile information"
+	messageEmbed.Title = "Summoner " + summoner.Name
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

@@ -64,6 +64,7 @@ func HelpCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate
 	messageEmbed.Fields = fields
 	messageEmbed.Type = "rich"
 	messageEmbed.Description = "Every command in ribels, and the usage of the those commands."
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

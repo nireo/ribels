@@ -69,6 +69,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	messageEmbed.Type = "rich"
 	messageEmbed.Title = fmt.Sprintf("%s", beatmap.Title)
 	messageEmbed.Fields = fields
+	messageEmbed.Color = 44504
 
 	_, _ = session.ChannelMessageSend(msg.ChannelID,
 		fmt.Sprintf("Most recent osu!Standard play for %s", utils.UnFormatName(osuName)))
