@@ -11,6 +11,7 @@ import (
 )
 
 var key string
+var currentMap string
 
 // Since golang is a static typed language we need to create structs for the json requests
 // note that we don't need to add a field for every single json field, just for those which we need
@@ -65,6 +66,29 @@ type OsuRecentPlay struct {
 	Rank        string `json:"rank"`
 }
 
+type OsuScore struct {
+	ScoreID     string `json:"score_id"`
+	Score       string `json:"score"`
+	Username    string `json:"username"`
+	Count300    string `json:"count300"`
+	Count100    string `json:"count100"`
+	Count50     string `json:"count50"`
+	CountMiss   string `json:"countmiss"`
+	EnabledMods string `json:"enabled_mods"`
+	UserID      string `json:"user_id"`
+	Date        string `json:"date"`
+	Rank        string `json:"rank"`
+	PP          string `json:"pp"`
+}
+
+func SetCurrentMap(currMapID string) {
+	currentMap = currMapID
+}
+
+func GetCurrentMap() string {
+	return currentMap
+}
+
 var RankEmojis map[string]string
 
 func GetUserFromOSU(username string) (*OsuUserResponse, error) {
@@ -91,6 +115,28 @@ func GetUserFromOSU(username string) (*OsuUserResponse, error) {
 
 	osuUser = &osuUsers[0]
 	return osuUser, nil
+}
+
+func GetPlaysInBeatmapFromUser(beatmapID, userID string) ([]OsuScore, error) {
+	var osuScores []OsuScore
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_scores?u=%s&k=%s&limit=3&b=%s",
+		userID, key, beatmapID))
+	if err != nil {
+		return osuScores, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return osuScores, err
+	}
+
+	if err := json.Unmarshal(body, &osuScores); err != nil {
+		return osuScores, err
+	}
+
+	return osuScores
 }
 
 func GetOsuBeatmap(beatmapID string) (*OsuBeatmap, error) {
@@ -185,6 +231,7 @@ func InitApiKey() {
 		"B":  "<:bibelsB:753276991473451020>",
 		"C":  "<:bibelsC:753277059094020216>",
 		"D":  "<:bibelsD:753277123070001244>",
+		"F":  "kantsii lisää F emote ;)",
 	}
 
 	mods = map[string]uint8{
@@ -224,5 +271,3 @@ func GetOsuUsername(discordId string, args []string) (string, error) {
 
 	return osuName, nil
 }
-
-

@@ -29,9 +29,17 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		log.Printf("%s : %s", msg.Author.ID, msg.Content)
 	}
 
+	// most recent map
+	mostRecent := ""
+
 	// check for the commands with arguments
 	if command, ok := commands.CommandsWithArgs[strings.ToLower(args[0])]; ok {
 		go command(session, msg, args)
+
+		// set the most recent map, so that users can compare maps
+		if args[0] == "$recent" {
+
+		}
 
 		// stop needless checking after executing command
 		return
