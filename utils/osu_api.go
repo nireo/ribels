@@ -136,7 +136,33 @@ func GetPlaysInBeatmapFromUser(beatmapID, userID string) ([]OsuScore, error) {
 		return osuScores, err
 	}
 
-	return osuScores
+	return osuScores, nil
+}
+
+func GetScoresForCurrentMap(username string) ([]OsuScore, error) {
+	if currentMap == "" {
+		return nil, errors.New("no current map")
+	}
+
+	var osuScores []OsuScore
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_scores?u=%s&k=%s&limit=3&b=%s",
+		username, key, currentMap))
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return osuScores, err
+	}
+
+	if err := json.Unmarshal(body, &osuScores); err != nil {
+		return nil, err
+	}
+
+	return osuScores, nil
 }
 
 func GetOsuBeatmap(beatmapID string) (*OsuBeatmap, error) {
