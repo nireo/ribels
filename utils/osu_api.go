@@ -40,6 +40,7 @@ type OsuTopPlay struct {
 	Date        string `json:"date"`
 	Rank        string `json:"rank"`
 	PP          string `json:"pp"`
+	UserID      string `json:"user_id"`
 }
 
 type OsuBeatmap struct {
@@ -197,7 +198,7 @@ var mods map[string]uint8
 func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {
 	var topplays []OsuTopPlay
 
-	requestURL := fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&limit=5&m=%d",
+	requestURL := fmt.Sprintf("https://osu.ppy.sh/api/get_user_best?u=%s&k=%s&limit=3&m=%d",
 		username, key, mods[mode])
 
 	response, err := http.Get(requestURL)
