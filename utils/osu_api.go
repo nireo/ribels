@@ -51,6 +51,7 @@ type OsuBeatmap struct {
 	Title       string `json:"title"`
 	TotalLength string `json:"total_length"`
 	MaxCombo    string `json:"max_combo"`
+	Version     string `json:"version"`
 }
 
 type OsuRecentPlay struct {
@@ -79,6 +80,7 @@ type OsuScore struct {
 	Date        string `json:"date"`
 	Rank        string `json:"rank"`
 	PP          string `json:"pp"`
+	MaxCombo    string `json:"maxcombo"`
 }
 
 func SetCurrentMap(currMapID string) {

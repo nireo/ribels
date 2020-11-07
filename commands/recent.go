@@ -67,7 +67,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	// create the actual embed
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Type = "rich"
-	messageEmbed.Title = fmt.Sprintf("%s", beatmap.Title)
+	messageEmbed.Title = fmt.Sprintf("%s[%s]", beatmap.Title, beatmap.Version)
 	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
 
