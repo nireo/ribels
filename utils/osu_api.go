@@ -284,6 +284,19 @@ func (tp *OsuTopPlay) CalculateTopPlayAcc() string {
 	return fmt.Sprintf("%.2f", acc)
 }
 
+func (rp *OsuRecentPlay) CalculateAcc() string {
+	missCount, _ := strconv.Atoi(rp.CountMiss)
+	count50, _ := strconv.Atoi(rp.Count50)
+	count100, _ := strconv.Atoi(rp.Count100)
+	count300, _ := strconv.Atoi(rp.Count300)
+
+	top := float64(50*count50 + 100*count100 + 300*count300)
+	bot := float64(300 * (missCount + count300 + count100 + count50))
+	acc := (top / bot) * 100
+
+	return fmt.Sprintf("%.2f", acc)
+}
+
 func GetOsuUsername(discordId string, args []string) (string, error) {
 	var osuName string
 	if len(args) > 1 {
