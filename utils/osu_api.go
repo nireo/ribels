@@ -24,6 +24,9 @@ type OsuUserResponse struct {
 	Accuracy      string `json:"accuracy"`
 	Country       string `json:"country"`
 	SecondsPlayed string `json:"total_seconds_played"`
+	PPCountryRank string `json:"pp_country_rank"`
+	RawPP         string `json:"pp_raw"`
+	UserID        string `json:"user_id"`
 }
 
 type OsuTopPlay struct {
@@ -44,15 +47,16 @@ type OsuTopPlay struct {
 }
 
 type OsuBeatmap struct {
-	Approved    string `json:"approved"`
-	BPM         string `json:"bpm"`
-	Difficulty  string `json:"difficultyrating"`
-	Created     string `json:"creator"`
-	Artist      string `json:"artist"`
-	Title       string `json:"title"`
-	TotalLength string `json:"total_length"`
-	MaxCombo    string `json:"max_combo"`
-	Version     string `json:"version"`
+	Approved     string `json:"approved"`
+	BPM          string `json:"bpm"`
+	Difficulty   string `json:"difficultyrating"`
+	Created      string `json:"creator"`
+	Artist       string `json:"artist"`
+	Title        string `json:"title"`
+	TotalLength  string `json:"total_length"`
+	MaxCombo     string `json:"max_combo"`
+	Version      string `json:"version"`
+	BeatmapSetID string `json:"beatmapset_id"`
 }
 
 type OsuRecentPlay struct {

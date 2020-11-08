@@ -49,14 +49,11 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 
 	fields := []*discordgo.MessageEmbedField{
 		{
-			Name:   fmt.Sprintf("%s[%s] + %s[%.2f★]", beatmap.Title, beatmap.Version, mods, floatDifficulty),
+			Name: fmt.Sprintf("%s[%s] + %s[%.2f★]",
+				beatmap.Title, beatmap.Version, mods, floatDifficulty),
 			Value:  content,
 			Inline: false,
 		},
-	}
-
-	footer := *&discordgo.MessageEmbedFooter{
-		Text: fmt.Sprintf("Score set %s", recentPlay.Date),
 	}
 
 	// create the actual embed
@@ -64,7 +61,13 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	messageEmbed.Type = "rich"
 	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
-	messageEmbed.Footer = &footer
+	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
+		Text: fmt.Sprintf("Score set %s | https://osu.ppy.sh/b/%s", recentPlay.Date, recentPlay.BeatmapID),
+	}
+
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("https://b.ppy.sh/thumb/%sl.jpg", beatmap.BeatmapSetID),
+	}
 
 	// set this recent map as the current map, so that others can compare their scores
 	utils.SetCurrentMap(recentPlay.BeatmapID)

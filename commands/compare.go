@@ -65,6 +65,9 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 	messageEmbed.Type = "rich"
 	messageEmbed.Color = 44504
 	messageEmbed.Fields = fields
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("https://b.ppy.sh/thumb/%sl.jpg", beatmap.BeatmapSetID),
+	}
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }
