@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	oppai "github.com/flesnuk/oppai5"
 )
 
 var key string
@@ -316,4 +318,40 @@ func GetOsuUsername(discordId string, args []string) (string, error) {
 	}
 
 	return osuName, nil
+}
+
+func (rp *OsuRecentPlay) CalculatePP() (float64, error) {
+	if err := DownloadOsuFile(rp.BeatmapID); err != nil {
+		return 0, errors.New("could not download .osu file")
+	}
+
+	file, err := os.Open(fmt.Sprintf("./temp/%s", rp.BeatmapID))
+	if err != nil {
+		return 0, errors.New("could not parse file")
+	}
+
+	bmap := oppai.Parse(file)
+
+	count300, _ := strconv.Atoi(rp.Count300)
+	count100, _ := strconv.Atoi(rp.Count100)
+	count50, _ := strconv.Atoi(rp.Count50)
+	maxCombo, _ := strconv.Atoi(rp.MaxCombo)
+	countMiss, _ := strconv.Atoi(rp.CountMiss)
+	enabledMods, _ := strconv.Atoi(rp.EnabledMods)
+
+	pp := oppai.PPInfo(bmap, &oppai.Parameters{
+		N300:   uint16(count300),
+		N100:   uint16(count100),
+		N50:    uint16(count50),
+		Misses: uint16(countMiss),
+		Combo:  uint16(maxCombo),
+		Mods:   uint32(enabledMods),
+	}).PP
+
+	// remove the file
+	if err := os.Remove(fmt.Sprintf("./temp/%s", rp.BeatmapID)); err != nil {
+		return 0, err
+	}
+
+	return pp.Total, nil
 }

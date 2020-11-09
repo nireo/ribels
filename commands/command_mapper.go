@@ -15,7 +15,7 @@ func InitCommandsMap() {
 	CommandsWithArgs = map[string]WithArgs{
 		utils.FormatCommand("set"):      SetCommandHandler,
 		utils.FormatCommand("top"):      TopCommandHandler,
-		utils.FormatCommand("recent"):   RecentCommandHandler,
+		utils.FormatCommand("rs"):       RecentCommandHandler,
 		utils.FormatCommand("osu"):      OsuCommandHandler,
 		utils.FormatCommand("maniatop"): ManiaTopHandler,
 		utils.FormatCommand("ctbtop"):   CTBCommandHandler,
