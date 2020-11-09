@@ -195,9 +195,8 @@ type MatchReference struct {
 	Season     int    `json:"season"`
 	Queue      int    `json:"queue"`
 	Role       string `json:"role"`
-	Timestamp  int    `json:"timestamp"`
+	Timestamp  int64  `json:"timestamp"`
 }
-
 
 type RiotClient struct {
 	BaseURL   string `json:"base_url"`
@@ -362,12 +361,13 @@ func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error
 
 func (c *RiotClient) GetListOfMatches(accountId string, begin, end int) (*Matchlist, error) {
 	var matches *Matchlist
-	endpoint := fmt.Sprintf("matchlists/by-account/%s?beginIndex=%d&endIndex=%d",
-		accountId, begin, end)
+	endpoint := fmt.Sprintf("match/v4/matchlists/by-account/%s", accountId)
 	response, _, errs := c.NewAgent(endpoint, "").EndStruct(&matches)
 	if errs != nil {
 		LogErrors(errs)
 	}
+
+	fmt.Println(begin, end)
 
 	if response.StatusCode != 200 {
 		log.Println("err: ", response.Status)

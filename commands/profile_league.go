@@ -66,8 +66,8 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 	})
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "\u200B",
-		Value: "\u200B",
+		Name:   "\u200B",
+		Value:  "\u200B",
 		Inline: false,
 	})
 
@@ -79,7 +79,7 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 			name = "*Ranked Flex*"
 		}
 
-		winRate := float64(rank.Wins)/float64(rank.Wins+rank.Losses)
+		winRate := float64(rank.Wins) / float64(rank.Wins+rank.Losses)
 
 		formattedDivision := fmt.Sprintf(strings.Title(strings.ToLower(rank.Tier)))
 
@@ -98,8 +98,8 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 	}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "\u200B",
-		Value: "\u200B",
+		Name:   "\u200B",
+		Value:  "\u200B",
 		Inline: false,
 	})
 
@@ -124,8 +124,8 @@ func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.Mess
 	}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name: "Most played champions",
-		Value: fieldValue,
+		Name:   "Most played champions",
+		Value:  fieldValue,
 		Inline: false,
 	})
 
