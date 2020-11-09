@@ -28,7 +28,7 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	// we can use a loop since all the fields are similar in a sense
 	for index, play := range topPlays {
 		// load the beatmap so that we can get more information other than the ID
-		beatmap, err := utils.GetOsuBeatmap(play.BeatmapID)
+		beatmap, err := utils.GetOsuBeatmapMods(play.BeatmapID, play.EnabledMods)
 		if err != nil {
 			continue
 		}

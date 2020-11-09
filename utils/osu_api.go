@@ -199,6 +199,31 @@ func GetOsuBeatmap(beatmapID string) (*OsuBeatmap, error) {
 	return singleMap, nil
 }
 
+func GetOsuBeatmapMods(beatmapID, mods string) (*OsuBeatmap, error) {
+	// this object is used for returning an error without the risk of panicking
+	singleMap := &OsuBeatmap{}
+	var beatmaps []OsuBeatmap
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_beatmaps?b=%s&k=%s&limit=5&mods=%s", beatmapID, key, mods))
+	if err != nil {
+		return singleMap, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return singleMap, err
+	}
+
+	if err := json.Unmarshal(body, &beatmaps); err != nil {
+		return singleMap, err
+	}
+
+	singleMap = &beatmaps[0]
+
+	return singleMap, nil
+}
+
 var mods map[string]uint8
 
 func GetModeTopPlays(username, mode string) ([]OsuTopPlay, error) {

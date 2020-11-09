@@ -23,7 +23,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	}
 
 	// get the beatmap, so that we can use it's name and other data related to it
-	beatmap, err := utils.GetOsuBeatmap(recentPlay.BeatmapID)
+	beatmap, err := utils.GetOsuBeatmapMods(recentPlay.BeatmapID, recentPlay.EnabledMods)
 	if err != nil {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
