@@ -48,7 +48,9 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	}
 
 	var content string
-	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** ▸ %s%%\n", utils.RankEmojis[recentPlay.Rank], calculatedPP, recentPlay.CalculateAcc())
+	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(if fc: %2.fPP)*▸ %s%%\n",
+		utils.RankEmojis[recentPlay.Rank], calculatedPP.PlayPP, calculatedPP.IfFCPP, recentPlay.CalculateAcc())
+
 	content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
 		recentPlay.Score, recentPlay.MaxCombo, beatmap.MaxCombo, recentPlay.Count300,
 		recentPlay.Count100, recentPlay.Count50, recentPlay.CountMiss)
