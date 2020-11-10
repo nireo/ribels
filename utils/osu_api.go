@@ -283,6 +283,7 @@ func GetRecentPlay(username string) (*OsuRecentPlay, error) {
 func InitApiKey() {
 	key = os.Getenv("OSU_KEY")
 
+	// predefine rank emojis
 	RankEmojis = map[string]string{
 		"X":  "<:bibelsX:753277439102418996>",
 		"S":  "<:bibelsS:753277217420607679>",
@@ -295,6 +296,7 @@ func InitApiKey() {
 		"F":  "kantsii lisää F emote ;)",
 	}
 
+	// create a mods string, so that we can easily find the mode number related to the mode name.
 	mods = map[string]uint8{
 		"standard": 0,
 		"taiko":    1,
@@ -303,6 +305,8 @@ func InitApiKey() {
 	}
 }
 
+// Acc calculations for different plays, could be placed into different functions, but usage is more
+// clear when used as independent methods
 func (tp *OsuTopPlay) CalculateTopPlayAcc() string {
 	// format all the counts into numbers
 	missCount, _ := strconv.Atoi(tp.CountMiss)
@@ -464,9 +468,9 @@ func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
 	}).PP
 
 	// remove the file
-	//if err := os.Remove(fmt.Sprintf("./temp/%s", rp.BeatmapID)); err != nil {
-	//	return &MapResultPP{}, err
-	//}
+	if err := os.Remove(fmt.Sprintf("./temp/%s", currentMapID)); err != nil {
+		return &MapResultPP{}, err
+	}
 
 	result := &MapResultPP{
 		IfFCPP: ifFcpp.Total,
@@ -474,4 +478,73 @@ func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
 	}
 
 	return result, nil
+}
+
+// The same as 'CalculatePP' for osu scores, but this is optimized for checking many maps,
+// so that we don't have to: request a map, make a file, do calculations, delete file. With this
+// function we can just do calculations for each map
+func PrecalculatePP(scores []OsuScore, currentMapID string) ([]*MapResultPP, error) {
+	var mapResults []*MapResultPP
+
+	// download the .osu file and save it in the ./temp directory, named with the currentMapID
+	if err := DownloadOsuFile(currentMapID); err != nil {
+		return mapResults, errors.New("could not download .osu file")
+	}
+
+	// load the beatmap, so that we can also check what the PP amount would be, for a full combo
+	beatmap, err := GetOsuBeatmap(currentMapID)
+	if err != nil {
+		return mapResults, err
+	}
+
+	maxMaxCombo, _ := strconv.Atoi(beatmap.MaxCombo)
+
+	// find the file, where the beatmap information is saved
+	file, err := os.Open(fmt.Sprintf("./temp/%s", currentMapID))
+	if err != nil {
+		return mapResults, errors.New("could not parse file")
+	}
+
+	bmap := oppai.Parse(file)
+	for _, score := range scores {
+		count300, _ := strconv.Atoi(score.Count300)
+		count100, _ := strconv.Atoi(score.Count100)
+		count50, _ := strconv.Atoi(score.Count50)
+		maxCombo, _ := strconv.Atoi(score.MaxCombo)
+		countMiss, _ := strconv.Atoi(score.CountMiss)
+		enabledMods, _ := strconv.Atoi(score.EnabledMods)
+
+		pp := oppai.PPInfo(bmap, &oppai.Parameters{
+			N300:   uint16(count300),
+			N100:   uint16(count100),
+			N50:    uint16(count50),
+			Misses: uint16(countMiss),
+			Combo:  uint16(maxCombo),
+			Mods:   uint32(enabledMods),
+		}).PP
+
+		ifFcpp := oppai.PPInfo(bmap, &oppai.Parameters{
+			N300:   uint16(count300),
+			N100:   uint16(count100 + countMiss),
+			N50:    uint16(count50),
+			Misses: 0,
+			Combo:  uint16(maxMaxCombo),
+			Mods:   uint32(enabledMods),
+		}).PP
+
+		result := &MapResultPP{
+			IfFCPP: ifFcpp.Total,
+			PlayPP: pp.Total,
+		}
+
+		mapResults = append(mapResults, result)
+	}
+
+	// finally after doing the necessary calculations, we can delete the map,
+	// since we don't want to save it
+	if err := os.Remove(fmt.Sprintf("./temp/%s", currentMapID)); err != nil {
+		return mapResults, err
+	}
+
+	return mapResults, nil
 }
