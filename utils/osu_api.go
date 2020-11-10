@@ -75,6 +75,7 @@ type OsuRecentPlay struct {
 }
 
 type OsuScore struct {
+	BeatmapID   string
 	ScoreID     string `json:"score_id"`
 	Score       string `json:"score"`
 	Username    string `json:"username"`
@@ -168,9 +169,9 @@ func GetScoresForCurrentMap(username string) ([]OsuScore, error) {
 	}
 
 	if err := json.Unmarshal(body, &osuScores); err != nil {
+
 		return nil, err
 	}
-
 	return osuScores, nil
 }
 
@@ -329,6 +330,18 @@ func (rp *OsuRecentPlay) CalculateAcc() string {
 	return fmt.Sprintf("%.2f", acc)
 }
 
+func (rp *OsuScore) CalculateAcc() string {
+	missCount, _ := strconv.Atoi(rp.CountMiss)
+	count50, _ := strconv.Atoi(rp.Count50)
+	count100, _ := strconv.Atoi(rp.Count100)
+	count300, _ := strconv.Atoi(rp.Count300)
+
+	top := float64(50*count50 + 100*count100 + 300*count300)
+	bot := float64(300 * (missCount + count300 + count100 + count50))
+	acc := (top / bot) * 100
+
+	return fmt.Sprintf("%.2f", acc)
+}
 func GetOsuUsername(discordId string, args []string) (string, error) {
 	var osuName string
 	if len(args) > 1 {
@@ -397,6 +410,63 @@ func (rp *OsuRecentPlay) CalculatePP() (*MapResultPP, error) {
 	if err := os.Remove(fmt.Sprintf("./temp/%s", rp.BeatmapID)); err != nil {
 		return &MapResultPP{}, err
 	}
+
+	result := &MapResultPP{
+		IfFCPP: ifFcpp.Total,
+		PlayPP: pp.Total,
+	}
+
+	return result, nil
+}
+
+func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
+	fmt.Println(rp.BeatmapID)
+	if err := DownloadOsuFile(currentMapID); err != nil {
+		return &MapResultPP{}, errors.New("could not download .osu file")
+	}
+
+	file, err := os.Open(fmt.Sprintf("./temp/%s", currentMapID))
+	if err != nil {
+		return &MapResultPP{}, errors.New("could not parse file")
+	}
+
+	bmap := oppai.Parse(file)
+
+	count300, _ := strconv.Atoi(rp.Count300)
+	count100, _ := strconv.Atoi(rp.Count100)
+	count50, _ := strconv.Atoi(rp.Count50)
+	maxCombo, _ := strconv.Atoi(rp.MaxCombo)
+	countMiss, _ := strconv.Atoi(rp.CountMiss)
+	enabledMods, _ := strconv.Atoi(rp.EnabledMods)
+
+	beatmap, err := GetOsuBeatmap(currentMapID)
+	if err != nil {
+		return &MapResultPP{}, err
+	}
+	maxMaxCombo, _ := strconv.Atoi(beatmap.MaxCombo)
+
+	pp := oppai.PPInfo(bmap, &oppai.Parameters{
+		N300:   uint16(count300),
+		N100:   uint16(count100),
+		N50:    uint16(count50),
+		Misses: uint16(countMiss),
+		Combo:  uint16(maxCombo),
+		Mods:   uint32(enabledMods),
+	}).PP
+
+	ifFcpp := oppai.PPInfo(bmap, &oppai.Parameters{
+		N300:   uint16(count300),
+		N100:   uint16(count100 + countMiss),
+		N50:    uint16(count50),
+		Misses: 0,
+		Combo:  uint16(maxMaxCombo),
+		Mods:   uint32(enabledMods),
+	}).PP
+
+	// remove the file
+	//if err := os.Remove(fmt.Sprintf("./temp/%s", rp.BeatmapID)); err != nil {
+	//	return &MapResultPP{}, err
+	//}
 
 	result := &MapResultPP{
 		IfFCPP: ifFcpp.Total,

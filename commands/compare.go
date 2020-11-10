@@ -35,10 +35,11 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 
 	if len(plays) == 0 {
 		_, _ = session.ChannelMessageSend(msg.ChannelID,
-			fmt.Sprintf("**Could not plays by %s on %s**", osuName, beatmap.Title))
+			fmt.Sprintf("**Could not find plays by %s on %s**", osuName, beatmap.Title))
 		return
 	}
 
+	fmt.Println(currentMapID)
 	var content string
 	for index, play := range plays {
 		mods, err := utils.GetMods(play.EnabledMods)
@@ -47,7 +48,15 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 			return
 		}
 
-		content += fmt.Sprintf("**%d.** `%s` **Score** [%s★]\n", (index + 1), mods, beatmap.Difficulty)
+		calculatedPP, err := play.CalculatePP(currentMapID)
+		if err != nil {
+			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		content += fmt.Sprintf("**%d.** `%s` **Score** [%s★]\n", index + 1, mods, beatmap.Difficulty)
+		content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(%2.fpp for FC)*▸ %s%%\n",
+			utils.RankEmojis[play.Rank], calculatedPP.PlayPP, calculatedPP.IfFCPP, play.CalculateAcc())
 		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
 			play.Score, play.MaxCombo, beatmap.MaxCombo, play.Count300, play.Count100, play.Count50, play.Count50)
 		content += fmt.Sprintf("▸ Score set %s\n\n", play.Date)
