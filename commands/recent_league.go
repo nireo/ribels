@@ -51,12 +51,17 @@ func RecentLeagueCommandHandler(session *discordgo.Session, msg *discordgo.Messa
 	}
 
 	var content string
-	for index, match := range matches.Matches[:5] {
-		content += fmt.Sprintf("\n**%d.** %s\n", (index + 1), match.Lane)
+	for index, match := range matches.Matches[:3] {
 
 		champion := client.Champions.GetChampionWithKey(strconv.Itoa(match.Champion))
+		content += fmt.Sprintf("\n**%d. %s**\n", (index + 1), champion.Name)
 
-		content += fmt.Sprintf("**▸ Champion:** %s\n", champion.Name)
+		betterLane, ok := utils.Roles[match.Role]
+		if !ok {
+			content += "**▸ Lane:** Non specified\n"
+		} else {
+			content += fmt.Sprintf("**▸ Lane:** %s\n", betterLane)
+		}
 
 		t := time.Unix(match.Timestamp/1000, 0)
 		fmt.Println(match.Timestamp)

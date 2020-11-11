@@ -138,6 +138,20 @@ type LiveMatch struct {
 	GameLength    int   `json:"gameLength"`
 }
 
+type SingleMatch struct {
+	GameID       int64         `json:"gameId"`
+	QueueID      int64         `json:"queueId"`
+	GameType     string        `json:"gameType"`
+	GameDuration int64         `json:"gameDuration"`
+	PlatformID   string        `json:"platformId"`
+	GameCreation int64         `json:"gameCreation"`
+	SeasionID    int           `json:"seasonId"`
+	GameVersion  string        `json:"gameVersion"`
+	MapID        int           `json:"mapId"`
+	GameMode     string        `json:"gameMode"`
+	Participants []Participant `json:"participants"`
+}
+
 type Participant struct {
 	TeamID                   uint8         `json:"teamId"`
 	Spell1ID                 int           `json:"spell1Id"`
@@ -205,6 +219,7 @@ type RiotClient struct {
 }
 
 var ValidRegions map[string]string
+var Roles map[string]string
 
 func InitAPI() {
 	ValidRegions = map[string]string{
@@ -219,6 +234,17 @@ func InitAPI() {
 		"oc":  "oc1",
 		"tr":  "tr1",
 		"ru":  "ru",
+	}
+
+	Roles = map[string]string{
+		"MID_LANE":  "Mid",
+		"SOLO":      "Mid/Top",
+		"TOP_LANE":  "Top",
+		"BOT_LANE":  "ADC/Support",
+		"DUO_CARRY": "ADC",
+		"DUO":       "Support",
+		"JUNGLE":    "Jungle",
+		"NONE":      "Jungle",
 	}
 }
 
@@ -409,6 +435,23 @@ func (c *RiotClient) GetSingleChampionMastery(summonerID, championID string) (
 	}
 
 	return mastery, nil
+}
+
+func (c *RiotClient) GetSingleMatch(matchID string) (*SingleMatch, error) {
+	var singleMatch *SingleMatch
+	endpoint := fmt.Sprintf("match/v4/matches/%s", matchID)
+
+	response, _, errs := c.NewAgent(endpoint, "").EndStruct(&singleMatch)
+	if errs != nil {
+		LogErrors(errs)
+	}
+
+	if response.StatusCode != 200 {
+		log.Println("err: ", response.Status)
+		return nil, errors.New(response.Status)
+	}
+
+	return singleMatch, nil
 }
 
 // Sanitize user input into a table format

@@ -48,7 +48,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	}
 
 	var content string
-	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(if fc: %2.fPP)*▸ %s%%\n",
+	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(%.2fpp for FC)*▸ %s%%\n",
 		utils.RankEmojis[recentPlay.Rank], calculatedPP.PlayPP, calculatedPP.IfFCPP, recentPlay.CalculateAcc())
 
 	content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",

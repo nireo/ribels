@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nireo/ribels/utils"
@@ -39,7 +40,6 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 		return
 	}
 
-	fmt.Println(currentMapID)
 	var content string
 	for index, play := range plays {
 		mods, err := utils.GetMods(play.EnabledMods)
@@ -54,8 +54,14 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 			return
 		}
 
-		content += fmt.Sprintf("**%d.** `%s` **Score** [%s★]\n", index + 1, mods, beatmap.Difficulty)
-		content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(%2.fpp for FC)*▸ %s%%\n",
+		floatStar, err := strconv.ParseFloat(beatmap.Difficulty, 64)
+		if err != nil {
+			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+			return
+		}
+
+		content += fmt.Sprintf("**%d.** `%s` **Score** [%.2f★]\n", index+1, mods, floatStar)
+		content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(%.2fpp for FC)*▸ %s%%\n",
 			utils.RankEmojis[play.Rank], calculatedPP.PlayPP, calculatedPP.IfFCPP, play.CalculateAcc())
 		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
 			play.Score, play.MaxCombo, beatmap.MaxCombo, play.Count300, play.Count100, play.Count50, play.Count50)
