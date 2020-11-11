@@ -293,7 +293,7 @@ func InitApiKey() {
 		"B":  "<:bibelsB:753276991473451020>",
 		"C":  "<:bibelsC:753277059094020216>",
 		"D":  "<:bibelsD:753277123070001244>",
-		"F":  "kantsii lisää F emote ;)",
+		"F":  "<:bibelsF:776190735950544936>",
 	}
 
 	// create a mods string, so that we can easily find the mode number related to the mode name.
