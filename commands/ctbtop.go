@@ -21,6 +21,8 @@ func CTBCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		return
 	}
 
+	userId := topPlays[0].UserID
+
 	var content string
 	// we can use a loop since all the fields are similar in a sense
 	for index, play := range topPlays {
@@ -62,18 +64,21 @@ func CTBCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		content += fmt.Sprintf("▸ Score Set %s\n\n", play.Date)
 	}
 
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name:   fmt.Sprintf("Top 3 osu! CTB Plays for %s", osuName),
-			Value:  content,
-			Inline: false,
-		},
-	}
-
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Type = "rich"
-	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
+	messageEmbed.Description = content
+	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
+		Text: "On osu! Official Server",
+	}
+	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
+		IconURL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+		Name:    fmt.Sprintf("Top 3 osu! CTB plays for %s", osuName),
+		URL:     fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

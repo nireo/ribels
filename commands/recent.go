@@ -22,6 +22,8 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 		return
 	}
 
+	userId := recentPlay.UserID
+
 	// get the beatmap, so that we can use it's name and other data related to it
 	beatmap, err := utils.GetOsuBeatmapMods(recentPlay.BeatmapID, recentPlay.EnabledMods)
 	if err != nil {
@@ -55,22 +57,18 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 		recentPlay.Score, recentPlay.MaxCombo, beatmap.MaxCombo, recentPlay.Count300,
 		recentPlay.Count100, recentPlay.Count50, recentPlay.CountMiss)
 
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name: fmt.Sprintf("%s[%s] + %s[%.2f★]",
-				beatmap.Title, beatmap.Version, mods, floatDifficulty),
-			Value:  content,
-			Inline: false,
-		},
-	}
-
 	// create the actual embed
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Type = "rich"
-	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
+	messageEmbed.Description = content
 	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
 		Text: fmt.Sprintf("Score set %s | https://osu.ppy.sh/b/%s", recentPlay.Date, recentPlay.BeatmapID),
+	}
+	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
+		IconURL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+		Name:    fmt.Sprintf("%s[%s] + %s[%.2f★]", beatmap.Title, beatmap.Version, mods, floatDifficulty),
+		URL:     fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
 	}
 
 	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{

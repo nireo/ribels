@@ -20,6 +20,7 @@ func ManiaTopHandler(session *discordgo.Session, msg *discordgo.MessageCreate, a
 		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 		return
 	}
+	userId := topPlays[0].UserID
 
 	var content string
 
@@ -58,23 +59,26 @@ func ManiaTopHandler(session *discordgo.Session, msg *discordgo.MessageCreate, a
 			(index + 1), beatmap.Title, beatmap.Version, mods, starFloat)
 		content += fmt.Sprintf("▸ %s ▸ **%.2f** ▸ %s%%\n",
 			utils.RankEmojis[play.Rank], ppFloat, play.CalculateTopPlayAcc())
-		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
-			play.Score, play.MaxCombo, beatmap.MaxCombo, play.Count300, play.Count100, play.Count50, play.CountMiss)
+		content += fmt.Sprintf("▸ %s ▸ x%s ▸ [%s/%s/%s/%s]\n",
+			play.Score, play.MaxCombo, play.Count300, play.Count100, play.Count50, play.CountMiss)
 		content += fmt.Sprintf("▸ Score Set %s\n\n", play.Date)
-	}
-
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name:   fmt.Sprintf("Top 3 osu! Mania Plays for %s", osuName),
-			Value:  content,
-			Inline: false,
-		},
 	}
 
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Type = "rich"
-	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
+	messageEmbed.Description = content
+	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
+		IconURL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+		Name:    fmt.Sprintf("Top 3 osu! Mania plays for %s", osuName),
+		URL:     fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
+	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
+		Text: "On osu! Official Server",
+	}
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

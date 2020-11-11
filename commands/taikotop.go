@@ -21,6 +21,8 @@ func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCr
 		return
 	}
 
+	userId := topPlays[0].UserID
+
 	var content string
 
 	// we can use a loop since all the fields are similar in a sense
@@ -54,24 +56,27 @@ func TaikoTopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCr
 		content += fmt.Sprintf("**%d. %s[%s] +%s** [%.2f★]\n",
 			(index + 1), beatmap.Title, beatmap.Version, mods, starFloat)
 		content += fmt.Sprintf("▸ %s ▸ **%.2f** ▸ %s%%\n",
-			utils.RankEmojis[play.Rank], ppFloat, play.CalculateTopPlayAcc())
-		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
-			play.Score, play.MaxCombo, beatmap.MaxCombo, play.Count300, play.Count100, play.Count50, play.CountMiss)
+			utils.RankEmojis[play.Rank], ppFloat, utils.CalculateTaikoAcc(&play))
+		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s]\n",
+			play.Score, play.MaxCombo, beatmap.MaxCombo, play.Count300, play.Count100, play.CountMiss)
 		content += fmt.Sprintf("▸ Score Set %s\n\n", play.Date)
-	}
-
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name:   fmt.Sprintf("Top 3 osu! Taiko Plays for %s", osuName),
-			Value:  content,
-			Inline: false,
-		},
 	}
 
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Type = "rich"
-	messageEmbed.Fields = fields
 	messageEmbed.Color = 44504
+	messageEmbed.Description = content
+	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
+		Text: "On osu! Official Server",
+	}
+	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
+		IconURL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+		Name:    fmt.Sprintf("Top 3 osu! Taiko plays for %s", osuName),
+		URL:     fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
+	}
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
 }

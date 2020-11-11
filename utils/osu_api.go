@@ -62,6 +62,7 @@ type OsuBeatmap struct {
 }
 
 type OsuRecentPlay struct {
+	UserID      string `json:"user_id"`
 	BeatmapID   string `json:"beatmap_id"`
 	Score       string `json:"score"`
 	MaxCombo    string `json:"maxcombo"`
@@ -329,6 +330,18 @@ func (rp *OsuRecentPlay) CalculateAcc() string {
 
 	top := float64(50*count50 + 100*count100 + 300*count300)
 	bot := float64(300 * (missCount + count300 + count100 + count50))
+	acc := (top / bot) * 100
+
+	return fmt.Sprintf("%.2f", acc)
+}
+
+func CalculateTaikoAcc(topPlay *OsuTopPlay) string {
+	missCount, _ := strconv.ParseFloat(topPlay.CountMiss, 64)
+	count100, _ := strconv.ParseFloat(topPlay.Count100, 64)
+	count300, _ := strconv.ParseFloat(topPlay.Count300, 64)
+
+	top := float64(0.5*count100 + count300)
+	bot := float64(count300 + missCount + count100)
 	acc := (top / bot) * 100
 
 	return fmt.Sprintf("%.2f", acc)
