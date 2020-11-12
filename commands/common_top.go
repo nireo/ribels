@@ -8,24 +8,22 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
-// This command returns the first 10 top plays of a user!
-func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
+func CommonTopCommandHandler(s *discordgo.Session, m *discordgo.MessageCreate, args []string, mode string) {
+	osuName, err := utils.GetOsuUsername(m.Author.ID, args)
 	if err != nil {
-		_, _ = session.ChannelMessageSend(msg.ChannelID, "Error getting osu username")
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Error getting osu username")
 		return
 	}
 
-	topPlays, err := utils.GetModeTopPlays(osuName, "standard")
+	topPlays, err := utils.GetModeTopPlays(osuName, mode)
 	if err != nil {
-		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+		_, _ = s.ChannelMessageSend(m.ChannelID, err.Error())
 		return
 	}
 
 	userId := topPlays[0].UserID
-	fmt.Println(userId)
 	var content string
-	// we can use a loop since all the fields are similar in a sense
+
 	for index, play := range topPlays {
 		// load the beatmap so that we can get more information other than the ID
 		beatmap, err := utils.GetOsuBeatmapMods(play.BeatmapID, play.EnabledMods)
@@ -37,19 +35,19 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 		// but handle it for good merit!
 		mods, err := utils.GetMods(play.EnabledMods)
 		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+			_, _ = s.ChannelMessageSend(m.ChannelID, err.Error())
 			return
 		}
 
 		ppFloat, err := strconv.ParseFloat(play.PP, 64)
 		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+			_, _ = s.ChannelMessageSend(m.ChannelID, err.Error())
 			return
 		}
 
 		starFloat, err := strconv.ParseFloat(beatmap.Difficulty, 64)
 		if err != nil {
-			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+			_, _ = s.ChannelMessageSend(m.ChannelID, err.Error())
 			return
 		}
 
