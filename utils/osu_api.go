@@ -92,6 +92,48 @@ type OsuScore struct {
 	MaxCombo    string `json:"maxcombo"`
 }
 
+type OsuMatch struct {
+	MatchID   string `json:"match_id"`
+	Name      string `json:"name"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}
+
+type OsuGameScore struct {
+	Slot        string `json:"slot"`
+	Team        string `json:"team"`
+	UserID      string `json:"user_id"`
+	Score       string `json:"score"`
+	MaxCombo    string `json:"max_combo"`
+	Rank        string `json:"rank"`
+	Count300    string `json:"count300"`
+	Count100    string `json:"count100"`
+	Count50     string `json:"count50"`
+	CountMiss   string `json:"countmiss"`
+	CountGeki   string `json:"countgeki"`
+	CountKatu   string `json:"countkatu"`
+	Pass        string `json:"pass"`
+	EnabledMods string `json:"enabled_mods"`
+}
+
+type OsuGame struct {
+	GameID      string `json:"game_id"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	BeatmapID   string `json:"beatmap_id"`
+	PlayMode    string `json:"play_mode"`
+	MatchType   string `json:"match_type"`
+	ScoringType string `json:"scoring_type"`
+	TeamType    string `json:"team_type"`
+	Mods        string `json:"mods"`
+	Scores      OsuGameScore
+}
+
+type OsuMultiMatch struct {
+	Match OsuMatch
+	Games []OsuGame
+}
+
 func SetCurrentMap(currMapID string) {
 	currentMap = currMapID
 }
@@ -126,6 +168,27 @@ func GetUserFromOSU(username string) (*OsuUserResponse, error) {
 
 	osuUser = &osuUsers[0]
 	return osuUser, nil
+}
+
+func GetMultiplayerGame(matchID string) (*OsuMultiMatch, error) {
+	var multiMatch OsuMultiMatch
+	response, err := http.Get(fmt.Sprintf("https://osu.ppy.sh/api/get_match?k=%s&mp=%s", key, matchID))
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, &multiMatch); err != nil {
+		return nil, err
+	}
+
+	return &multiMatch, nil
 }
 
 func GetPlaysInBeatmapFromUser(beatmapID, userID string) ([]OsuScore, error) {

@@ -76,5 +76,5 @@ func CommonTopCommandHandler(s *discordgo.Session, m *discordgo.MessageCreate, a
 		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
 	}
 
-	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	_, _ = s.ChannelMessageSendEmbed(m.ChannelID, &messageEmbed)
 }
