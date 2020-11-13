@@ -23,7 +23,6 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	}
 
 	userId := topPlays[0].UserID
-	fmt.Println(userId)
 	var content string
 	// we can use a loop since all the fields are similar in a sense
 	for index, play := range topPlays {
@@ -47,14 +46,14 @@ func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 			return
 		}
 
-		starFloat, err := strconv.ParseFloat(beatmap.Difficulty, 64)
+		diffFloat, err := play.CalculateDiff()
 		if err != nil {
 			_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
 			return
 		}
 
 		content += fmt.Sprintf("**%d. %s[%s] +%s** [%.2f★]\n",
-			(index + 1), beatmap.Title, beatmap.Version, mods, starFloat)
+			(index + 1), beatmap.Title, beatmap.Version, mods, diffFloat)
 		content += fmt.Sprintf("▸ %s ▸ **%.2f** ▸ %s%%\n",
 			utils.RankEmojis[play.Rank], ppFloat, play.CalculateTopPlayAcc())
 		content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",

@@ -45,24 +45,21 @@ func OsuCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate,
 	content += fmt.Sprintf("**▸ Hit Accuracy:** %.2f%%\n", floatAcc)
 	content += fmt.Sprintf("**▸ Playcount:** %s\n", selectedUser.Playcount)
 
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name:   fmt.Sprintf("osu! Standard Profile for %s", selectedUser.Username),
-			Value:  content,
-			Inline: false,
-		},
-	}
-
 	// create the final embed
 	var messageEmbed discordgo.MessageEmbed
-	messageEmbed.Fields = fields
 	messageEmbed.Type = "rich"
 	messageEmbed.Color = 44504
-	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
-		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", selectedUser.UserID),
+	messageEmbed.Description = content
+	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
+		IconURL: fmt.Sprintf("https://osu.ppy.sh/images/flags/%s.png", selectedUser.Country),
+		Name:    fmt.Sprintf("osu! Standard profile for %s", selectedUser.Username),
+		URL:     fmt.Sprintf("https://osu.ppy.sh/images/flags/%s.png", selectedUser.Country),
 	}
 	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
 		Text: "On osu! Official Server",
+	}
+	messageEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("http://s.ppy.sh/a/%s", selectedUser.UserID),
 	}
 
 	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)

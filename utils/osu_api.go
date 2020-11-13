@@ -500,7 +500,6 @@ func (rp *OsuRecentPlay) CalculatePP() (*MapResultPP, error) {
 }
 
 func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
-	fmt.Println(rp.BeatmapID)
 	if err := DownloadOsuFile(currentMapID); err != nil {
 		return &MapResultPP{}, errors.New("could not download .osu file")
 	}
@@ -554,6 +553,31 @@ func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
 	}
 
 	return result, nil
+}
+
+func (topPlay *OsuTopPlay) CalculateDiff() (float64, error) {
+	if err := DownloadOsuFile(topPlay.BeatmapID); err != nil {
+		return 0, errors.New("could not download .osu file")
+	}
+
+	file, err := os.Open(fmt.Sprintf("./temp/%s", topPlay.BeatmapID))
+	if err != nil {
+		return 0, errors.New("could not parse file")
+	}
+
+	bmap := oppai.Parse(file)
+	enabledMods, _ := strconv.Atoi(topPlay.EnabledMods)
+
+	diff := oppai.PPInfo(bmap, &oppai.Parameters{
+		Mods: uint32(enabledMods),
+	}).Diff
+
+	// remove the file
+	if err := os.Remove(fmt.Sprintf("./temp/%s", topPlay.BeatmapID)); err != nil {
+		return 0, err
+	}
+
+	return diff.Total, nil
 }
 
 // The same as 'CalculatePP' for osu scores, but this is optimized for checking many maps,
