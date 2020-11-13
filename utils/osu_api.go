@@ -441,6 +441,7 @@ func GetOsuUsername(discordId string, args []string) (string, error) {
 type MapResultPP struct {
 	PlayPP float64 `json:"play_pp"`
 	IfFCPP float64 `json:"if_fc"`
+	Diff   float64 `json:"diff"`
 }
 
 func (rp *OsuRecentPlay) CalculatePP() (*MapResultPP, error) {
@@ -542,6 +543,10 @@ func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
 		Mods:   uint32(enabledMods),
 	}).PP
 
+	diff := oppai.PPInfo(bmap, &oppai.Parameters{
+		Mods: uint32(enabledMods),
+	}).Diff
+
 	// remove the file
 	if err := os.Remove(fmt.Sprintf("./temp/%s", currentMapID)); err != nil {
 		return &MapResultPP{}, err
@@ -550,6 +555,68 @@ func (rp *OsuScore) CalculatePP(currentMapID string) (*MapResultPP, error) {
 	result := &MapResultPP{
 		IfFCPP: ifFcpp.Total,
 		PlayPP: pp.Total,
+		Diff:   diff.Total,
+	}
+
+	return result, nil
+}
+
+func (topPlay *OsuTopPlay) CalculateAll() (*MapResultPP, error) {
+	if err := DownloadOsuFile(topPlay.BeatmapID); err != nil {
+		return &MapResultPP{}, errors.New("could not download .osu file")
+	}
+
+	file, err := os.Open(fmt.Sprintf("./temp/%s", topPlay.BeatmapID))
+	if err != nil {
+		return &MapResultPP{}, errors.New("could not parse file")
+	}
+
+	bmap := oppai.Parse(file)
+
+	count300, _ := strconv.Atoi(rp.Count300)
+	count100, _ := strconv.Atoi(rp.Count100)
+	count50, _ := strconv.Atoi(rp.Count50)
+	maxCombo, _ := strconv.Atoi(rp.MaxCombo)
+	countMiss, _ := strconv.Atoi(rp.CountMiss)
+	enabledMods, _ := strconv.Atoi(rp.EnabledMods)
+
+	beatmap, err := GetOsuBeatmap(currentMapID)
+	if err != nil {
+		return &MapResultPP{}, err
+	}
+	maxMaxCombo, _ := strconv.Atoi(beatmap.MaxCombo)
+
+	pp := oppai.PPInfo(bmap, &oppai.Parameters{
+		N300:   uint16(count300),
+		N100:   uint16(count100),
+		N50:    uint16(count50),
+		Misses: uint16(countMiss),
+		Combo:  uint16(maxCombo),
+		Mods:   uint32(enabledMods),
+	}).PP
+
+	ifFcpp := oppai.PPInfo(bmap, &oppai.Parameters{
+		N300:   uint16(count300),
+		N100:   uint16(count100 + countMiss),
+		N50:    uint16(count50),
+		Misses: 0,
+		Combo:  uint16(maxMaxCombo),
+		Mods:   uint32(enabledMods),
+	}).PP
+
+	diff := oppai.PPInfo(bmap, &oppai.Parameters{
+		Mods: uint32(enabledMods),
+	}).Diff
+
+	// remove the file
+	if err := os.Remove(fmt.Sprintf("./temp/%s", topPlay.BeatmapID)); err != nil {
+		return &MapResultPP{}, err
+	}
+
+	result := &MapResultPP{
+		IfFCPP: ifFcpp.Total,
+		PlayPP: pp.Total,
+		Diff:   diff.Total,
 	}
 
 	return result, nil
@@ -632,9 +699,14 @@ func PrecalculatePP(scores []OsuScore, currentMapID string) ([]*MapResultPP, err
 			Mods:   uint32(enabledMods),
 		}).PP
 
+		diff := oppai.PPInfo(bmap, &oppai.Parameters{
+			Mods: uint32(enabledMods),
+		}).Diff
+
 		result := &MapResultPP{
 			IfFCPP: ifFcpp.Total,
 			PlayPP: pp.Total,
+			Diff:   diff.Total,
 		}
 
 		mapResults = append(mapResults, result)

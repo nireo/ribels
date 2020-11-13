@@ -60,7 +60,7 @@ func GetMods(modNumber string) (string, error) {
 	}
 
 	if mods == "" {
-		mods = "NoMod"
+		mods = "No Mod"
 	}
 
 	return mods, nil
