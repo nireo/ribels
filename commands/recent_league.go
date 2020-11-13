@@ -51,24 +51,39 @@ func RecentLeagueCommandHandler(session *discordgo.Session, msg *discordgo.Messa
 	}
 
 	var content string
-	for index, match := range matches.Matches[:3] {
+	match := matches.Matches[0]
 
-		champion := client.Champions.GetChampionWithKey(strconv.Itoa(match.Champion))
-		content += fmt.Sprintf("\n**%d. %s**\n", (index + 1), champion.Name)
-
-		betterLane, ok := utils.Roles[match.Role]
-		if !ok {
-			content += "**▸ Lane:** Non specified\n"
-		} else {
-			content += fmt.Sprintf("**▸ Lane:** %s\n", betterLane)
-		}
-
-		t := time.Unix(match.Timestamp/1000, 0)
-		fmt.Println(match.Timestamp)
-
-		strDate := t.Format(time.UnixDate)
-		content += fmt.Sprintf("**▸ Played:** %s\n", strDate)
+	matchInfo, err := client.GetSingleMatch(strconv.Itoa(match.GameID))
+	if err != nil {
+		_, _ = session.ChannelMessageSend(msg.ChannelID, err.Error())
+		return
 	}
+
+	champion := client.Champions.GetChampionWithKey(strconv.Itoa(match.Champion))
+	content += fmt.Sprintf("\n**▸ Champion:** %s\n", champion.Name)
+	content += fmt.Sprintf("**▸ Game Duration:** %d minutes\n", matchInfo.GameDuration/60)
+
+	var participantID int
+	for _, participant := range matchInfo.ParticipantIdentities {
+		if participant.Player.SummonerID == summoner.ID {
+			participantID = participant.ParticipantID
+		}
+	}
+
+	var par utils.MatchParticipant
+	for _, participant := range matchInfo.Participants {
+		if participantID == participant.ParticipantId {
+			par = participant
+		}
+	}
+
+	content += fmt.Sprintf("**▸ Stats:** %d/%d/%d\n",
+		par.Stats.Kills, par.Stats.Deaths, par.Stats.Assists)
+
+	t := time.Unix(match.Timestamp/1000, 0)
+
+	strDate := t.Format(time.UnixDate)
+	content += fmt.Sprintf("**▸ Played:** %s\n", strDate)
 
 	var messageEmbed discordgo.MessageEmbed
 	messageEmbed.Fields = []*discordgo.MessageEmbedField{

@@ -573,14 +573,14 @@ func (topPlay *OsuTopPlay) CalculateAll() (*MapResultPP, error) {
 
 	bmap := oppai.Parse(file)
 
-	count300, _ := strconv.Atoi(rp.Count300)
-	count100, _ := strconv.Atoi(rp.Count100)
-	count50, _ := strconv.Atoi(rp.Count50)
-	maxCombo, _ := strconv.Atoi(rp.MaxCombo)
-	countMiss, _ := strconv.Atoi(rp.CountMiss)
-	enabledMods, _ := strconv.Atoi(rp.EnabledMods)
+	count300, _ := strconv.Atoi(topPlay.Count300)
+	count100, _ := strconv.Atoi(topPlay.Count100)
+	count50, _ := strconv.Atoi(topPlay.Count50)
+	maxCombo, _ := strconv.Atoi(topPlay.MaxCombo)
+	countMiss, _ := strconv.Atoi(topPlay.CountMiss)
+	enabledMods, _ := strconv.Atoi(topPlay.EnabledMods)
 
-	beatmap, err := GetOsuBeatmap(currentMapID)
+	beatmap, err := GetOsuBeatmap(topPlay.BeatmapID)
 	if err != nil {
 		return &MapResultPP{}, err
 	}

@@ -37,7 +37,7 @@ func CompareCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 	// if there are no recent plays for that user
 	if len(plays) == 0 {
 		_, _ = session.ChannelMessageSend(msg.ChannelID,
-			fmt.Sprintf("**Could not find plays by %s on %s**", osuName, beatmap.Title))
+			fmt.Sprintf("**Could not find plays by %s on %s[%s]**", osuName, beatmap.Title, beatmap.Version))
 		return
 	}
 

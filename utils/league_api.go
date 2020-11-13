@@ -138,24 +138,40 @@ type LiveMatch struct {
 	GameLength    int   `json:"gameLength"`
 }
 
+type MatchParticipant struct {
+	ParticipantId int              `json:"participantId"`
+	ChampionID    int              `json:"championId"`
+	Stats         ParticipantStats `json:"stats"`
+	TeamID        int              `json:"teamId"`
+}
+
+type Player struct {
+	ProfileIcon  int    `json:"profileIcon"`
+	AccountID    string `json:"accountId"`
+	SummonerName string `json:"summonerName"`
+	SummonerID   string `json:"summonerId"`
+}
+
 type SingleMatch struct {
-	GameID       int64         `json:"gameId"`
-	QueueID      int64         `json:"queueId"`
-	GameType     string        `json:"gameType"`
-	GameDuration int64         `json:"gameDuration"`
-	PlatformID   string        `json:"platformId"`
-	GameCreation int64         `json:"gameCreation"`
-	SeasionID    int           `json:"seasonId"`
-	GameVersion  string        `json:"gameVersion"`
-	MapID        int           `json:"mapId"`
-	GameMode     string        `json:"gameMode"`
-	Participants []Participant `json:"participants"`
+	GameID                int64              `json:"gameId"`
+	QueueID               int64              `json:"queueId"`
+	GameType              string             `json:"gameType"`
+	GameDuration          int64              `json:"gameDuration"`
+	PlatformID            string             `json:"platformId"`
+	GameCreation          int64              `json:"gameCreation"`
+	SeasionID             int                `json:"seasonId"`
+	GameVersion           string             `json:"gameVersion"`
+	MapID                 int                `json:"mapId"`
+	GameMode              string             `json:"gameMode"`
+	Participants          []MatchParticipant `json:"participants"`
+	ParticipantIdentities []struct {
+		ParticipantID int    `json:"participantId"`
+		Player        Player `json:"player"`
+	} `json:"participantIdentities"`
 }
 
 type Participant struct {
 	TeamID                   uint8         `json:"teamId"`
-	Spell1ID                 int           `json:"spell1Id"`
-	Spell2ID                 int           `json:"spell2Id"`
 	ChampionID               int           `json:"championId"`
 	ProfileIconID            int           `json:"profileIconId"`
 	SummonerName             string        `json:"summonerName"`
@@ -210,6 +226,14 @@ type MatchReference struct {
 	Queue      int    `json:"queue"`
 	Role       string `json:"role"`
 	Timestamp  int64  `json:"timestamp"`
+}
+
+type ParticipantStats struct {
+	LargestMultiKill int `json:"largestMultiKill"`
+	ChampLevel       int `json:"champLevel"`
+	Deaths           int `json:"deaths"`
+	Kills            int `json:"kills"`
+	Assists          int `json:"assists"`
 }
 
 type RiotClient struct {

@@ -50,7 +50,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	}
 
 	var content string
-	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** *(%.2fpp for FC)*▸ %s%%\n",
+	content += fmt.Sprintf("▸ %s ▸ **%.2fPP** (%.2fPP for FC)▸ %s%%\n",
 		utils.RankEmojis[recentPlay.Rank], calculatedPP.PlayPP, calculatedPP.IfFCPP, recentPlay.CalculateAcc())
 
 	content += fmt.Sprintf("▸ %s ▸ x%s/%s ▸ [%s/%s/%s/%s]\n",
@@ -65,6 +65,7 @@ func RecentCommandHandler(session *discordgo.Session, msg *discordgo.MessageCrea
 	messageEmbed.Footer = &discordgo.MessageEmbedFooter{
 		Text: fmt.Sprintf("Score set %s | https://osu.ppy.sh/b/%s", recentPlay.Date, recentPlay.BeatmapID),
 	}
+
 	messageEmbed.Author = &discordgo.MessageEmbedAuthor{
 		IconURL: fmt.Sprintf("http://s.ppy.sh/a/%s", userId),
 		Name:    fmt.Sprintf("%s[%s] + %s[%.2f★]", beatmap.Title, beatmap.Version, mods, floatDifficulty),
