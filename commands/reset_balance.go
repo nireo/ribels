@@ -15,4 +15,5 @@ func ResetBalance(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	economyUser.Balance = 100
 	db.Save(&economyUser)
+	_, _ = session.ChannelMessageSend(msg.ChannelID, "Your balance has been reset.\nCurrent balance is `100`.")
 }
