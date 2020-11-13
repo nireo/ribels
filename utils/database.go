@@ -22,6 +22,12 @@ type LeagueUser struct {
 	Region    string `json:"region"`
 }
 
+type EconomyUser struct {
+	gorm.Model
+	DiscordID string `json:"discord_id"`
+	Balance   int64    `json:"balance"`
+}
+
 var db *gorm.DB
 
 func GetDatabase() *gorm.DB {
@@ -44,7 +50,7 @@ func InitDatabase() {
 	}
 
 	// migrate models
-	if err := database.AutoMigrate(&User{}, &LeagueUser{}); err != nil {
+	if err := database.AutoMigrate(&User{}, &LeagueUser{}, &EconomyUser{}); err != nil {
 		log.Fatal(err)
 	}
 

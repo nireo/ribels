@@ -27,12 +27,15 @@ func InitCommandsMap() {
 		utils.FormatCommand("lol"):      LeagueProfileCommandHandler,
 		utils.FormatCommand("c"):        CompareCommandHandler,
 		utils.FormatCommand("coc"):      CocProfileCommandHandler,
+		utils.FormatCommand("coinflip"): CoinflipCommandHandler,
 	}
 
 	CommandsWOArgs = map[string]WOArgs{
-		utils.FormatCommand("help"):       HelpCommandHandler,
-		utils.FormatCommand("servers"):    ServersCommandHandler,
-		utils.FormatCommand("lol-remove"): RemoveLolCommandHandler,
-		utils.FormatCommand("osu-remove"): RemoveLolCommandHandler,
+		utils.FormatCommand("help"):          HelpCommandHandler,
+		utils.FormatCommand("servers"):       ServersCommandHandler,
+		utils.FormatCommand("lol-remove"):    RemoveLolCommandHandler,
+		utils.FormatCommand("osu-remove"):    RemoveLolCommandHandler,
+		utils.FormatCommand("balance"):       BalanceCommandHandler,
+		utils.FormatCommand("reset-balance"): ResetBalance,
 	}
 }

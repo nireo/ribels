@@ -33,6 +33,7 @@ type COCPlayer struct {
 	Name             string `json:"name"`
 	Tag              string `json:"tag"`
 	BuilderHallLevel int    `json:"builderHallLevel"`
+	Trophies         int    `json:"trophies"`
 	Spells           []struct {
 		Name     string `json:"name"`
 		Level    int    `json:"level"`
