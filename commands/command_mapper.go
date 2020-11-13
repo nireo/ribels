@@ -25,7 +25,8 @@ func InitCommandsMap() {
 		utils.FormatCommand("lol-curr"): CurrentLeagueGameCommand,
 		utils.FormatCommand("rs-lol"):   RecentLeagueCommandHandler,
 		utils.FormatCommand("lol"):      LeagueProfileCommandHandler,
-		utils.FormatCommand("c"):  CompareCommandHandler,
+		utils.FormatCommand("c"):        CompareCommandHandler,
+		utils.FormatCommand("coc"):      CocProfileCommandHandler,
 	}
 
 	CommandsWOArgs = map[string]WOArgs{

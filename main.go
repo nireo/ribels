@@ -32,6 +32,8 @@ func main() {
 	// init the league of legends api
 	utils.InitAPI()
 
+	utils.InitCocAPI()
+
 	utils.SetPrefix(os.Getenv("PREFIX"))
 
 	commands.InitCommandsMap()
