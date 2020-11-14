@@ -29,6 +29,7 @@ func InitCommandsMap() {
 		utils.FormatCommand("coc"):      CocProfileCommandHandler,
 		utils.FormatCommand("coinflip"): CoinflipCommandHandler,
 		utils.FormatCommand("pay"):      PayCommandHandler,
+		utils.FormatCommand("jackpot"):  JackpotCommandHandler,
 	}
 
 	CommandsWOArgs = map[string]WOArgs{
