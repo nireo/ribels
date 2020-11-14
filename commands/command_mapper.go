@@ -30,6 +30,7 @@ func InitCommandsMap() {
 		utils.FormatCommand("coinflip"): CoinflipCommandHandler,
 		utils.FormatCommand("pay"):      PayCommandHandler,
 		utils.FormatCommand("jackpot"):  JackpotCommandHandler,
+		utils.FormatCommand("compile"):  ExecCommandHandler,
 	}
 
 	CommandsWOArgs = map[string]WOArgs{
