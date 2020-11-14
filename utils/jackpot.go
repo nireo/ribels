@@ -5,11 +5,16 @@ import (
 	"fmt"
 )
 
-var GameRunning bool
-var Players map[string]int64
-var BetTotal int64
+type PlayerIdentity struct {
+	DiscordID string `json:"discord_id"`
+	Username  string `json:"username"`
+}
 
-func AddPlayer(discordID string, wager int64) error {
+var GameRunning = false
+var Players map[PlayerIdentity]int64
+var BetTotal int64 = 0
+
+func AddPlayer(discordID, discordName string, wager int64) error {
 	db := GetDatabase()
 	var user EconomyUser
 
@@ -29,27 +34,38 @@ func AddPlayer(discordID string, wager int64) error {
 	// decrease the amount of the wager, so that the user can't use money they don't have
 	user.Balance -= wager
 	db.Save(&user)
-
 	BetTotal += wager
-	Players[discordID] = wager
+
+	playerIdentity := PlayerIdentity{
+		Username:  discordName,
+		DiscordID: discordID,
+	}
+	Players[playerIdentity] += wager
 
 	return nil
+}
+
+func StartGame() {
+	GameRunning = true
+	Players = make(map[PlayerIdentity]int64)
 }
 
 func ClearGame() {
 	for k := range Players {
 		delete(Players, k)
 	}
+
 	GameRunning = false
+	BetTotal = 0
 }
 
 func PrintPlayers() string {
 	var players string
 	for player, wager := range Players {
 		// calculate the user's chanches of winning
-		winChance := float64(wager)/float64(BetTotal) * 100
+		winChance := float64(wager) / float64(BetTotal) * 100
 
-		players += fmt.Sprintf("`%s - %d (%.2f)`\n", player, wager, winChance)
+		players += fmt.Sprintf("`%s - %d (%.2f%%)`\n", player.Username, wager, winChance)
 	}
 
 	return players
