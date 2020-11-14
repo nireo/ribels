@@ -35,8 +35,8 @@ func InitCommandsMap() {
 	CommandsWOArgs = map[string]WOArgs{
 		utils.FormatCommand("help"):          HelpCommandHandler,
 		utils.FormatCommand("servers"):       ServersCommandHandler,
-		utils.FormatCommand("lol-remove"):    RemoveLolCommandHandler,
-		utils.FormatCommand("osu-remove"):    RemoveLolCommandHandler,
+		utils.FormatCommand("lol-rm"):        RemoveLolCommandHandler,
+		utils.FormatCommand("osu-rm"):        RemoveLolCommandHandler,
 		utils.FormatCommand("balance"):       BalanceCommandHandler,
 		utils.FormatCommand("reset-balance"): ResetBalance,
 	}
