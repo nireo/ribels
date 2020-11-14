@@ -36,7 +36,9 @@ func JackpotCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 		// create a sleep timer, and this is the same command that will display the results of the jackpot
 		time.Sleep(time.Second * 15)
 
-		_, _ = session.ChannelMessageSend(msg.ChannelID, "The game has concluded")
+		winner, ticket := utils.ChooseWinner()
+
+		_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("The winner is `%s`\nTicket:`%.10f`", winner.Username, ticket))
 		utils.ClearGame()
 	case "join":
 		if !utils.GameRunning {

@@ -3,16 +3,19 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 type PlayerIdentity struct {
 	DiscordID string `json:"discord_id"`
 	Username  string `json:"username"`
+	Wager     int64  `json:"wager"`
 }
 
 var GameRunning = false
-var Players map[PlayerIdentity]int64
 var BetTotal int64 = 0
+var PlayersArray []PlayerIdentity
 
 func AddPlayer(discordID, discordName string, wager int64) error {
 	db := GetDatabase()
@@ -34,38 +37,97 @@ func AddPlayer(discordID, discordName string, wager int64) error {
 	// decrease the amount of the wager, so that the user can't use money they don't have
 	user.Balance -= wager
 	db.Save(&user)
-	BetTotal += wager
 
-	playerIdentity := PlayerIdentity{
-		Username:  discordName,
-		DiscordID: discordID,
+	// check if the user is already in the game
+	index, found := InPlayers(discordID)
+	if !found {
+		playerIdentity := PlayerIdentity{
+			Username:  discordName,
+			DiscordID: discordID,
+			Wager:     wager,
+		}
+
+		PlayersArray = append(PlayersArray, playerIdentity)
+	} else {
+		PlayersArray[index].Wager += wager
 	}
-	Players[playerIdentity] += wager
 
+	BetTotal += wager
 	return nil
+}
+
+// Return the index of the player, and a boolean value if they were found in the array
+func InPlayers(discordID string) (int, bool) {
+	for index, player := range PlayersArray {
+		if player.DiscordID == discordID {
+			return index, true
+		}
+	}
+
+	return 0, false
+}
+
+type PlayerChance struct {
+	Player    PlayerIdentity
+	TopTicket float64
+	MinTicket float64
+}
+
+// Return the Player struct with discord id and username, and also returns the winning ticket
+func ChooseWinner() (PlayerIdentity, float64) {
+	var playersWithChances []PlayerChance
+	playersWithChances = append(playersWithChances, PlayerChance{
+		MinTicket: 0.0,
+		TopTicket: float64(PlayersArray[0].Wager) / float64(BetTotal),
+		Player:    PlayersArray[0],
+	})
+
+	// construct the ticket treshold array (skip the first element, since already in array)
+	for index, player := range PlayersArray[1:] {
+		playersWithChances = append(playersWithChances, PlayerChance{
+			MinTicket: playersWithChances[index].TopTicket + 0.0000001,
+			TopTicket: playersWithChances[index].TopTicket + (float64(player.Wager) / float64(BetTotal)),
+			Player:    PlayersArray[index],
+		})
+	}
+
+	// create the winning ticket
+	rand.Seed(time.Now().UnixNano())
+	winning := rand.Float64()
+
+	for _, player := range playersWithChances {
+		if player.MinTicket <= winning && winning <= player.TopTicket {
+			// pay the winner
+			var user EconomyUser
+			db.Where(&EconomyUser{DiscordID: player.Player.DiscordID}).First(&user)
+			user.Balance += BetTotal
+			db.Save(&user)
+
+			return player.Player, winning
+		}
+	}
+
+	return PlayerIdentity{}, winning
 }
 
 func StartGame() {
 	GameRunning = true
-	Players = make(map[PlayerIdentity]int64)
 }
 
 func ClearGame() {
-	for k := range Players {
-		delete(Players, k)
-	}
-
+	PlayersArray = nil
 	GameRunning = false
 	BetTotal = 0
 }
 
 func PrintPlayers() string {
 	var players string
-	for player, wager := range Players {
+	players += fmt.Sprintf("Current jackpot is: `%d`\n", BetTotal)
+	for _, player := range PlayersArray {
 		// calculate the user's chanches of winning
-		winChance := float64(wager) / float64(BetTotal) * 100
+		winChance := float64(player.Wager) / float64(BetTotal) * 100
 
-		players += fmt.Sprintf("`%s - %d (%.2f%%)`\n", player.Username, wager, winChance)
+		players += fmt.Sprintf("`%s - %d (%.2f%%)`\n", player.Username, player.Wager, winChance)
 	}
 
 	return players
