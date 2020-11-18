@@ -18,7 +18,7 @@ func BalanceCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 
 	// if the user doesn't have a balance, start the user out with 100 coins
 	newUser := &utils.EconomyUser{
-		Balance: 100,
+		Balance:   100,
 		DiscordID: msg.Author.ID,
 	}
 

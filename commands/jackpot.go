@@ -31,6 +31,7 @@ func JackpotCommandHandler(session *discordgo.Session, msg *discordgo.MessageCre
 		utils.StartGame()
 		if err := utils.AddPlayer(msg.Author.ID, msg.Author.Username, int64(wager)); err != nil {
 			_, _ = session.ChannelMessageSend(msg.ChannelID, "Error creating the jackpot")
+			return
 		}
 
 		// create a sleep timer, and this is the same command that will display the results of the jackpot

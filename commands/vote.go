@@ -1,17 +1,27 @@
 package commands
 
 import (
-	"github.com/bwmarrin/discordgo"
+	"fmt"
 	"strings"
+	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
-func VoteCommandHandler(session *discordgo.Session, msg *discordgo.Message, args []string) {
+func VoteCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	question := strings.Join(args[1:], " ")
 	if question == "" {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, "Cannot vote on a empty question!")
 		return
 	}
 
-	var messageEmbed discordgo.MessageEmbed
-	_, _ = session.ChannelMessageSendEmbed(msg.ChannelID, &messageEmbed)
+	m, _ := session.ChannelMessageSend(msg.ChannelID, question)
+	session.MessageReactionAdd(msg.ChannelID, m.ID, "👍")
+	session.MessageReactionAdd(msg.ChannelID, m.ID, "👎")
+
+	time.Sleep(time.Second * 5)
+
+	for reaction := range m.Reactions {
+		fmt.Println(reaction)
+	}
 }
