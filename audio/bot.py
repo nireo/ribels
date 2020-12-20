@@ -40,18 +40,31 @@ class MusicPlayer(commands.Cog):
             self.status_list[guild.id] = GuildStatus()
             return self.status_list[guild.id]
 
+
     def play_helper(self, client, status, song):
         status.playing = song
-        src = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(song.stream_url), volume=status.volume)
-
         def after_done(err):
             if len(status.queue) > 0:
                 self.play_helper(client, status, status.queue.pop(0))
             else:
                 asyncio.run_coroutine_threadsafe(client.disconnect(), self.bot.loop)
-
-        client.play(src, after=after_done)
-
+        client.play(
+           discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(song.stream_url), volume=status.volume),
+           after=after_done
+        )
+    
+    @commands.command()
+    @commands.guild_only()
+    async def stop(self, ctx):
+        client = ctx.guild.voice_client
+        status = self.get_guild_status(ctx.guild)
+        if client and client.channel:
+            await client.disconnect()
+            status.queue = []
+            status.playing = None
+        else:
+            await ctx.send("Not in voice channel")
+    
     @commands.command()
     @commands.guild_only()
     async def play(self, ctx, *, query):
@@ -62,7 +75,7 @@ class MusicPlayer(commands.Cog):
         if client and client.channel:
             try:
                 song = Song(query)
-            except youtube_dl.DownloadError as err:
+            except youtube_dl.DownloadError:
                 await ctx.send("Error loading video")
                 return
             status.queue.append(song)
@@ -72,12 +85,14 @@ class MusicPlayer(commands.Cog):
                 channel = ctx.author.voice.channel
                 try:
                     song = Song(query)
-                except youtube_dl.DownloadError as err:
+                except youtube_dl.DownloadError:
                     await ctx.send("Error loading video")
                     return
                 client = await channel.connect()
                 self.play_helper(client, status, song)
-                ctx.send(f"Now playing {song.title}")
+                await ctx.send(f"Now playing {song.title}")
+            else:
+                await ctx.send("You need to be in a voice channel!")
 
 class GuildStatus:
     def __init__(self):
@@ -92,4 +107,4 @@ async def on_ready():
     print(f"Logged in as {bot.user.name}")
 
 bot.add_cog(MusicPlayer(bot))
-bot.run("")
+bot.run("NjA0Mzk0MDc5NDIxNDY0NjAy.XTtT2Q.wlx3JvuWRTPFRb1WdZkA2hbwkqo")
