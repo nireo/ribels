@@ -2,6 +2,7 @@ from discord.ext import commands
 import youtube_dl
 import discord
 import asyncio
+from config import config
 
 YOUTUBE_DL_OPTIONS = {
     "default_search": "ytsearch",
@@ -157,4 +158,4 @@ async def on_ready():
     print(f"Logged in as {bot.user.name}")
 
 bot.add_cog(MusicPlayer(bot))
-bot.run("")
+bot.run(config["discord_token"])
