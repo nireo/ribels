@@ -26,14 +26,13 @@ class Song:
             info = ytdl.extract_info(search, download=False)
             return info
 
-    def get_message(self):
-        return f"Currently playing {self.title} by {self.by}"
-
 class MusicPlayer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        # list of guilds with their current music status
         self.status_list = {}
 
+    # Get the current guild's music state
     def get_guild_status(self, guild):
         if guild.id in self.status_list:
             return self.status_list[guild.id]
@@ -42,6 +41,7 @@ class MusicPlayer(commands.Cog):
             return self.status_list[guild.id]
 
 
+    # Handle playing songs and then continuing to new songs
     def play_helper(self, client, status, song):
         status.playing = song
         def after_done(err):
@@ -54,7 +54,7 @@ class MusicPlayer(commands.Cog):
            after=after_done
         )
     
-    @commands.command()
+    @commands.command(aliases=["s"])
     @commands.guild_only()
     async def stop(self, ctx):
         client = ctx.guild.voice_client
@@ -68,6 +68,18 @@ class MusicPlayer(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
+    async def tutorial(self, ctx):
+        embed = discord.Embed(title="Help", description="List of all the supported commands!")
+        embed.add_field(name=";vol <volume:int>", "Change the volume of the music player", False)
+        embed.add_field(";play <url>", "Play a given song from a youtube url", False)
+        embed.add_field(";pause", "Stop the current song (resume with same command)", False)
+        embed.add_field(";playing", "Get information about the current song", False)
+        embed.add_field(";queue", "Get the song queue for the current guild", False)
+        embed.add_field(";clear", "Clear the hole queue")
+        await ctx.send("", embed=embed)
+
+    @commands.command(aliases=["current"])
+    @commands.guild_only()
     async def playing(self, ctx):
         client = ctx.guild.voice_client
         status = self.get_guild_status(ctx.guild)
@@ -76,8 +88,17 @@ class MusicPlayer(commands.Cog):
         else:
             await ctx.send("Not in a voice channel")
 
+    @commands.command(aliases=["continue", "resume"])
+    @commands.guild_only()
+    async def pause(self, ctx):
+        client = ctx.guild.voice_client
+        if client.is_paused():
+            client.resume()
+        else:
+            client.pause()
 
-    @commands.command()
+
+    @commands.command(aliases=["playlist", "q"])
     @commands.guild_only()
     async def queue(self, ctx):
         client = ctx.guild.voice_client
@@ -96,13 +117,13 @@ class MusicPlayer(commands.Cog):
             await ctx.send("Not in voice channel")
 
     # Clear the queue
-    @commands.command()
+    @commands.command(aliases=["c"])
     @commands.guild_only()
     async def clear(self, ctx):
         status = self.get_guild_status(ctx.guild)
         status.queue = []
 
-    @commands.command()
+    @commands.command(aliases=["vol"])
     @commands.guild_only()
     async def volume(self, ctx, vol: int):
         status = self.get_guild_status(ctx.guild)
@@ -116,7 +137,7 @@ class MusicPlayer(commands.Cog):
         client.source.volume = status.volume
         await ctx.send(f"Volume set to: `{float(vol)}%`")
     
-    @commands.command()
+    @commands.command(aliases=["p", "song"])
     @commands.guild_only()
     async def play(self, ctx, *, query):
         client = ctx.guild.voice_client
