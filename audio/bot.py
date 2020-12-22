@@ -5,11 +5,40 @@ import asyncio
 from config import config
 
 YOUTUBE_DL_OPTIONS = {
-    "default_search": "ytsearch",
+    "default_search": "auto",
     "format": "bestaudio/best",
     "quiet": True,
-    "extract_flat": "in_playlist"
+    "noplaylist": True,
+    "nocheckcertificate": True,
+    "ignoreerrors": False,
+    "no_warnings": True,
+    "source_address": "0.0.0.0"
 }
+
+ffmpeg_options = {
+    'options': '-vn'
+}
+
+ytdl2 = youtube_dl.YoutubeDL(YOUTUBE_DL_OPTIONS)
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+
+        self.data = data
+
+        self.title = data.get('title')
+        self.url = data.get('url')
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl2.extract_info(url, download=not stream))
+
+        if 'entries' in data:
+            data = data['entries'][0]
+
+        filename = data['url'] if stream else ytdl2.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 class Song:
     def __init__(self, search):
@@ -66,18 +95,6 @@ class MusicPlayer(commands.Cog):
         else:
             await ctx.send("Not in voice channel")
 
-    @commands.command()
-    @commands.guild_only()
-    async def tutorial(self, ctx):
-        embed = discord.Embed(title="Help", description="List of all the supported commands!")
-        embed.add_field(name=";vol <volume:int>", "Change the volume of the music player", False)
-        embed.add_field(";play <url>", "Play a given song from a youtube url", False)
-        embed.add_field(";pause", "Stop the current song (resume with same command)", False)
-        embed.add_field(";playing", "Get information about the current song", False)
-        embed.add_field(";queue", "Get the song queue for the current guild", False)
-        embed.add_field(";clear", "Clear the hole queue")
-        await ctx.send("", embed=embed)
-
     @commands.command(aliases=["current"])
     @commands.guild_only()
     async def playing(self, ctx):
@@ -97,6 +114,24 @@ class MusicPlayer(commands.Cog):
         else:
             client.pause()
 
+
+    @commands.command()
+    async def playv2(self, ctx, *, url):
+        async with ctx.typing():
+            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            ctx.guild.voice_client.play(player, after=lambda e: print("Player error: %s" % e) if e else None)
+        await ctx.send("Now plying: {}".format(player.title))
+
+    @playv2.before_invoke
+    async def ensure_voice(self, ctx):
+        if ctx.guild.voice_client is None:
+            if ctx.author.voice:
+                await ctx.author.voice.channel.connect()
+            else:
+                await ctx.send("You are not connected to a voice channel.")
+                raise commands.CommandError("Author not connected to a voice channel.")
+        elif ctx.guild.voice_client.is_playing():
+            ctx.guild.voice_client.stop()
 
     @commands.command(aliases=["playlist", "q"])
     @commands.guild_only()
