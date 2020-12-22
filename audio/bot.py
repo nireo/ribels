@@ -93,6 +93,27 @@ class MusicPlayer(commands.Cog):
             await ctx.send(content)
         else:
             await ctx.send("Not in voice channel")
+
+    # Clear the queue
+    @commands.command()
+    @commands.guild_only()
+    async def clear(self, ctx):
+        status = self.get_guild_status(ctx.guild)
+        status.queue = []
+
+    @commands.command()
+    @commands.guild_only()
+    async def volume(self, ctx, vol: int):
+        status = self.get_guild_status(ctx.guild)
+        if vol < 0:
+            vol = 0
+        if vol > 150:
+            vol = 150
+
+        client = ctx.guild.voice_client
+        status.volume = float(vol) / 100.0
+        client.source.volume = status.volume
+        await ctx.send(f"Volume set to: `{float(vol)}%`")
     
     @commands.command()
     @commands.guild_only()
@@ -136,4 +157,4 @@ async def on_ready():
     print(f"Logged in as {bot.user.name}")
 
 bot.add_cog(MusicPlayer(bot))
-bot.run("NjA0Mzk0MDc5NDIxNDY0NjAy.XTtT2Q.pLnuvDu3BOG3WQgO6m83r2Sr4mA")
+bot.run("")
