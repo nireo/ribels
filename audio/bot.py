@@ -2,6 +2,7 @@ from discord.ext import commands
 import youtube_dl
 import discord
 import asyncio
+import os
 from config import config
 
 YOUTUBE_DL_OPTIONS = {
@@ -60,6 +61,8 @@ class MusicPlayer(commands.Cog):
         self.bot = bot
         # list of guilds with their current music status
         self.status_list = {}
+        self.queue = {}
+        self.curr_playing = None
 
     # Get the current guild's music state
     def get_guild_status(self, guild):
@@ -82,18 +85,36 @@ class MusicPlayer(commands.Cog):
            discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(song.stream_url), volume=status.volume),
            after=after_done
         )
-    
-    @commands.command(aliases=["s"])
+
+    @commands.command(aliases=["disconnect", "leave"])
     @commands.guild_only()
     async def stop(self, ctx):
         client = ctx.guild.voice_client
-        status = self.get_guild_status(ctx.guild)
-        if client and client.channel:
+        if client:
             await client.disconnect()
-            status.queue = []
-            status.playing = None
+
+            # clear all the webm files
+            after_playing()
         else:
-            await ctx.send("Not in voice channel")
+            await ctx.send("Not in a voice channel")
+
+    @commands.command()
+    @commands.guild_only()
+    async def join(self, ctx, *, channel: discord.VoiceChannel):
+        client = ctx.guild.voice_client
+        if client is not None:
+            return await client.move_to(channel)
+        await channel.connect()
+
+    @commands.command()
+    @commands.guild_only()
+    async def volume(self, ctx, volume:int):
+        client = ctx.guild.voice_client
+        if client is None:
+            return await ctx.send("Not connected to a voice channel.")
+
+        client.source.volume = volume / 100
+        await ctx.send("Changed volume to {}%".format(volume))
 
     @commands.command(aliases=["current"])
     @commands.guild_only()
@@ -114,15 +135,19 @@ class MusicPlayer(commands.Cog):
         else:
             client.pause()
 
-
     @commands.command()
-    async def playv2(self, ctx, *, url):
+    async def play(self, ctx, *, url):
+
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            player = await YTDLSource.from_url(url, loop=self.bot.loop)
             ctx.guild.voice_client.play(player, after=lambda e: print("Player error: %s" % e) if e else None)
         await ctx.send("Now plying: {}".format(player.title))
 
-    @playv2.before_invoke
+    @play.before_invoke
+    @pause.before_invoke
+    @volume.before_invoke
+    @join.before_invoke
+    @stop.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.guild.voice_client is None:
             if ctx.author.voice:
@@ -133,73 +158,6 @@ class MusicPlayer(commands.Cog):
         elif ctx.guild.voice_client.is_playing():
             ctx.guild.voice_client.stop()
 
-    @commands.command(aliases=["playlist", "q"])
-    @commands.guild_only()
-    async def queue(self, ctx):
-        client = ctx.guild.voice_client
-        status = self.get_guild_status(ctx.guild)
-        if client and client.channel:
-            if len(status.queue) == 0:
-                await ctx.send("Queue is currently empty")
-                return 
-            content, index = "", 1
-            for song in status.queue:
-                content += str(index) + song.title
-                index += 1
-
-            await ctx.send(content)
-        else:
-            await ctx.send("Not in voice channel")
-
-    # Clear the queue
-    @commands.command(aliases=["c"])
-    @commands.guild_only()
-    async def clear(self, ctx):
-        status = self.get_guild_status(ctx.guild)
-        status.queue = []
-
-    @commands.command(aliases=["vol"])
-    @commands.guild_only()
-    async def volume(self, ctx, vol: int):
-        status = self.get_guild_status(ctx.guild)
-        if vol < 0:
-            vol = 0
-        if vol > 150:
-            vol = 150
-
-        client = ctx.guild.voice_client
-        status.volume = float(vol) / 100.0
-        client.source.volume = status.volume
-        await ctx.send(f"Volume set to: `{float(vol)}%`")
-    
-    @commands.command(aliases=["p", "song"])
-    @commands.guild_only()
-    async def play(self, ctx, *, query):
-        client = ctx.guild.voice_client
-        status = self.get_guild_status(ctx.guild)
-
-        # if already in a voice channel
-        if client and client.channel:
-            try:
-                song = Song(query)
-            except youtube_dl.DownloadError:
-                await ctx.send("Error loading video")
-                return
-            status.queue.append(song)
-            await ctx.send("Added to queue")
-        else:
-            if ctx.author.voice is not None and ctx.author.voice.channel is not None:
-                channel = ctx.author.voice.channel
-                try:
-                    song = Song(query)
-                except youtube_dl.DownloadError:
-                    await ctx.send("Error loading video")
-                    return
-                client = await channel.connect()
-                self.play_helper(client, status, song)
-                await ctx.send(f"Now playing {song.title}")
-            else:
-                await ctx.send("You need to be in a voice channel!")
 
 class GuildStatus:
     def __init__(self):
@@ -208,6 +166,12 @@ class GuildStatus:
         self.queue = []
 
 bot = commands.Bot(command_prefix=";")
+def after_playing():
+    # remove the downloaded .webm file
+    CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+    for path in os.listdir(CURR_DIR):
+        if path.endswith(".webm"):
+            os.remove(path)
 
 @bot.event
 async def on_ready():
