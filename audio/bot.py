@@ -29,6 +29,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         self.title = data.get('title')
         self.url = data.get('url')
+        self.thumbnail = data.get('thumbnail')
+        self.duration = data.get('duration')
+        self.views = data.get('view_count')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -40,7 +43,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-
 
 class MusicPlayer(commands.Cog):
     def __init__(self, bot):
@@ -98,10 +100,13 @@ class MusicPlayer(commands.Cog):
     @commands.guild_only()
     async def play(self, ctx, *, url):
         """ Play a song from a given URL """
+
+        # Check if if we're currently playing a song.
         if self.curr_playing == None:
             self.curr_playing = url
         else:
             self.queue.append(url)
+
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             ctx.guild.voice_client.play(player, after=lambda e: print("Player error: %s" % e) if e else None)
