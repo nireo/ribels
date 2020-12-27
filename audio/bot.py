@@ -44,11 +44,30 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
+
+async def is_currently_playing(ctx):
+    client = ctx.guild.voice_client
+    if client and client.channel and client.source:
+        return True
+    else:
+        raise commands.CommandError("Currently not playing audio")
+
+
+async def in_voice(ctx):
+    voice = ctx.author.voice
+    bot_voice = ctx.guild.voice_client
+    if voice and bot_voice and voice.channel and bot_voice.channel and voice.channel == bot_voice.channel:
+        return True
+    else:
+        raise commands.CommandError("You're not in a voice channel.")
+
+
 class MusicPlayer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.queue = []
         self.curr_playing = None
+        self.guild_states = {}
 
     @commands.command(aliases=["disconnect", "leave"])
     @commands.guild_only()
@@ -62,6 +81,36 @@ class MusicPlayer(commands.Cog):
         else:
             await ctx.send("Not in a voice channel")
 
+    def get_guild_state(self, guild):
+        if guild.id in self.guild_states:
+            return self.guild_states[guild.id]
+        else:
+            self.guild_states[guild.id] = GuildState()
+            return self.guild_states[guild.id]
+
+    @commands.command(aliases=["cp", "np"])
+    async def currplaying(self, ctx):
+        guild_state = self.get_guild_state(ctx.guild)
+        await ctx.send("", embed=guild_state.now_playing.get_embed())
+
+    def play_helper(self, client, state, song):
+        state.now_playing = song
+        source = discord.PCMVolumeTransformer(
+            discord.FFmpegPCMAudio(song.stream_url), volume=state.volume)
+
+        def after_playing(err):
+            if len(state.playlist) > 0:
+                next_song = state.playlist.pop(0)
+                self.play_helper(client, state, next_song)
+            else:
+                await client.disconnect()
+
+        client.play(source, after=after_playing)
+    
+    @commands.command()
+    async def testplay(self, ctx):
+        pass
+        
 
     @commands.command()
     @commands.guild_only()
@@ -131,6 +180,14 @@ class MusicPlayer(commands.Cog):
         elif ctx.guild.voice_client.is_playing():
             ctx.guild.voice_client.stop()
 
+class GuildState:
+    def __init__(self):
+        self.volume = 1.0
+        self.playlist = []
+        self.now_playing = None
+    
+    def same_requester(self, user):
+        return self.now_playing.user == user 
 
 bot = commands.Bot(command_prefix=";")
 def after_playing():
