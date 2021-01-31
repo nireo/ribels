@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"github.com/nireo/ribels/commands"
 	"log"
 	"strings"
+
+	"github.com/nireo/ribels/commands"
+	"github.com/nireo/ribels/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,6 +24,13 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 	// tokenize the input
 	args := strings.Split(msg.Content, " ")
+
+	levenshteinDis := utils.ComputeDistance(strings.ReplaceAll(msg.Content, " ", ""), "dead")
+	if levenshteinDis < 4 {
+		session.ChannelMessageDelete(msg.ChannelID, msg.ID)
+		_, _ = session.ChannelMessageSend(msg.ChannelID, "https://tenor.com/view/dead-chat-passione-admin-passione-jojolion-gif-19211422")
+		return
+	}
 
 	// check if logging is enabled and also check if the message starts the command flag
 	// so that we don't log unrelated messages
