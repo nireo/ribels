@@ -12,11 +12,12 @@ import (
 
 var logging bool
 
-// Use this approach, since we don't want to load ENV variables for each message!
+// SetLogging sets the local `logging` variable which decides if logging information should be printed.
 func SetLogging(status bool) {
 	logging = status
 }
 
+// MessageHandler handles all of the message in a discord server.
 func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// ignore all messages created by the bot.
 	if msg.Author.ID == session.State.User.ID {
@@ -34,7 +35,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	// check if logging is enabled and also check if the message starts the command flag
 	// so that we don't log unrelated messages
-	if logging && msg.Content[0] == '$' {
+	if logging && msg.Content[0] == ';' {
 		log.Printf("%s : %s", msg.Author.ID, msg.Content)
 	}
 

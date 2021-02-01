@@ -2,6 +2,7 @@ package utils
 
 import "unicode/utf8"
 
+// ComputeDistance returns the levenshtein distance between the strings a and b.
 func ComputeDistance(a, b string) int {
 	if len(a) == 0 {
 		return utf8.RuneCountInString(b)

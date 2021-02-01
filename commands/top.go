@@ -8,7 +8,7 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
-// This command returns the first 10 top plays of a user!
+// TopCommandHandler returns the first 10 top plays of a user.
 func TopCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
 	if err != nil {

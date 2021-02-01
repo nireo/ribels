@@ -2,15 +2,17 @@ package commands
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/nireo/ribels/utils"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/nireo/ribels/utils"
 )
 
+// LeagueProfileCommandHandler returns information in a discord embed about a league of legends user.
 func LeagueProfileCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	var leagueName string
 	var region string

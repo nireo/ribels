@@ -2,12 +2,14 @@ package commands
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/nireo/ribels/utils"
 	"strconv"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/nireo/ribels/utils"
 )
 
+// JackpotCommandHandler handles the creation and running of jackpot using the jackpot utility.
 func JackpotCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	switch args[1] {
 	case "start":

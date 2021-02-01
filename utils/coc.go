@@ -12,10 +12,12 @@ import (
 
 var cocKey string
 
+// InitCocAPI sets the local cocKey used by the Clash of Clans api.
 func InitCocAPI() {
 	cocKey = os.Getenv("COC_API")
 }
 
+// COCPlayer is a golang struct that mimics the json response from the Clash of Clans api.
 type COCPlayer struct {
 	Clan struct {
 		Tag       string `json:"tag"`
@@ -54,6 +56,7 @@ type COCPlayer struct {
 	} `json:"troops"`
 }
 
+// GetCOCPlayerData returns the data of a user given a playerTag.
 func GetCOCPlayerData(playerTag string) (*COCPlayer, error) {
 	copy := playerTag[1:]
 	copy = "%23" + copy

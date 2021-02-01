@@ -8,6 +8,7 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
+// CTBCommandHandler returns the CTB top plays of a given osu! user.
 func CTBCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	osuName, err := utils.GetOsuUsername(msg.Author.ID, args)
 	if err != nil {

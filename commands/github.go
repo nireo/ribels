@@ -2,7 +2,7 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
-// Github command just gives the link to the source code on github
+// GithubCommandHandler just gives the link to the source code of the bot on github.
 func GithubCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	_, _ = session.ChannelMessageSend(msg.ChannelID, "https://github.com/nireo/ribels")
 }

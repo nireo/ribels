@@ -8,6 +8,7 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
+// ExecCommandHandler is used to execute code using an api.
 func ExecCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	if len(args) <= 2 {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, "You need to add more arguments!")

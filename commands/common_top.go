@@ -8,6 +8,8 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
+// CommonTopCommandHandler is a generalization of the other osu! related top play commands. This makes it so
+// for each osu! mode we don't need a new command. Instead we just use this one.
 func CommonTopCommandHandler(s *discordgo.Session, m *discordgo.MessageCreate, args []string, mode string) {
 	osuName, err := utils.GetOsuUsername(m.Author.ID, args)
 	if err != nil {

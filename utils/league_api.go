@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/parnurzeal/gorequest"
 	"log"
 	"net/http"
 	"sort"
@@ -11,8 +10,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/parnurzeal/gorequest"
 )
 
+// Champions data model
 type Champions struct {
 	Type    string               `json:"type"`
 	Format  string               `json:"format"`
@@ -20,6 +22,7 @@ type Champions struct {
 	Data    map[string]*Champion `json:"data"`
 }
 
+// Champion data model
 type Champion struct {
 	Version string `json:"version"`
 	ID      string `json:"id"`
@@ -272,14 +275,14 @@ func InitAPI() {
 	}
 }
 
-// print out all the errors from a list
+// LogErrors prints out all the errors from a list
 func LogErrors(errs []error) {
 	for _, err := range errs {
 		log.Print("err: ", err)
 	}
 }
 
-// load champion with key, with this we can easily check summoner names
+// GetChampionWithKey loads champion with key, with this we can easily check champion names names
 func (champions *Champions) GetChampionWithKey(key string) *Champion {
 	for i := range champions.Data {
 		if key == champions.Data[i].Key {
@@ -291,7 +294,7 @@ func (champions *Champions) GetChampionWithKey(key string) *Champion {
 	return nil
 }
 
-// Parse champion data from the riot api
+// ParseChampions parses champion data from the riot api
 func ParseChampions(sa *gorequest.SuperAgent) *Champions {
 	champUrl := "http://ddragon.leagueoflegends.com/cdn/10.7.1/data/en_US/champion.json"
 	var champs *Champions
@@ -306,7 +309,7 @@ func ParseChampions(sa *gorequest.SuperAgent) *Champions {
 	return champs
 }
 
-// Check if a shorthand is a valid and return that actual string,
+// CheckValidRegion checks if a shorthand is a valid and return that actual string,
 // also return a error, if there region is not valid
 func CheckValidRegion(region string) (string, error) {
 	value, ok := ValidRegions[strings.ToLower(region)]
@@ -317,6 +320,7 @@ func CheckValidRegion(region string) (string, error) {
 	return value, nil
 }
 
+// NewRiotClient returns an api client using a given reagion and a api authentication token.
 func NewRiotClient(region, token string) RiotClient {
 	// we don't need to check if the key is valid, since that is done outside in another function
 	sa := gorequest.New().Timeout(10*time.Second).
@@ -344,6 +348,7 @@ func (c *RiotClient) NewAgent(path string, query string) *gorequest.SuperAgent {
 	return sa
 }
 
+// GetSummonerWithName returns a summoner struct using their username.
 func (c *RiotClient) GetSummonerWithName(name string) (*Summoner, error) {
 	var summoner Summoner
 	// create a new superAgent and request summoner information from api
@@ -361,7 +366,7 @@ func (c *RiotClient) GetSummonerWithName(name string) (*Summoner, error) {
 	return &summoner, nil
 }
 
-// Returns the solo&duo and flex ranks of a summoner with param: id
+// GetSummonerRankWithID returns the solo&duo and flex ranks of a summoner with param: id
 func (c *RiotClient) GetSummonerRankWithID(id string) ([]SummonerRank, error) {
 	// array since summoners have 2 ranks: solo&duo and flex
 	var rank []SummonerRank
@@ -378,6 +383,7 @@ func (c *RiotClient) GetSummonerRankWithID(id string) ([]SummonerRank, error) {
 	return rank, nil
 }
 
+// GetFreeRotation returns the free rotations of champions.
 func (c *RiotClient) GetFreeRotation() (*ChampionInfo, error) {
 	var freeRotation *ChampionInfo
 	response, _, errs := c.NewAgent("platform/v3/champion-rotations", "").EndStruct(&freeRotation)
@@ -393,6 +399,7 @@ func (c *RiotClient) GetFreeRotation() (*ChampionInfo, error) {
 	return freeRotation, nil
 }
 
+// GetSummonerLiveMatch finds the match data of the user in an active game.
 func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error) {
 	var match LiveMatch
 	response, _, errs := c.NewAgent("spectator/v4/active-games/by-summoner", summoner.ID).EndStruct(&match)
@@ -409,6 +416,7 @@ func (c *RiotClient) GetSummonerLiveMatch(summoner *Summoner) (*LiveMatch, error
 	return &match, nil
 }
 
+// GetListOfMatches returns a list of matches from an account id, given  an beginning and end index.
 func (c *RiotClient) GetListOfMatches(accountId string, begin, end int) (*Matchlist, error) {
 	var matches *Matchlist
 	endpoint := fmt.Sprintf("match/v4/matchlists/by-account/%s", accountId)
@@ -427,6 +435,8 @@ func (c *RiotClient) GetListOfMatches(accountId string, begin, end int) (*Matchl
 	return matches, nil
 }
 
+// ListsSummonerMasteries returns a list that has the amount of masteries the user has for
+// each champion in the game.
 func (c *RiotClient) ListsSummonerMasteries(summonerID string) ([]*ChampionMastery, error) {
 	var masteries []*ChampionMastery
 	endpoint := fmt.Sprintf("champion-mastery/v4/champion-masteries/by-summoner/%s", summonerID)
@@ -443,6 +453,7 @@ func (c *RiotClient) ListsSummonerMasteries(summonerID string) ([]*ChampionMaste
 	return masteries, nil
 }
 
+// GetSingleChampionMastery gets the amount of mastery points that a user has on a given champion.
 func (c *RiotClient) GetSingleChampionMastery(summonerID, championID string) (
 	*ChampionMastery, error) {
 	var mastery *ChampionMastery
@@ -461,6 +472,7 @@ func (c *RiotClient) GetSingleChampionMastery(summonerID, championID string) (
 	return mastery, nil
 }
 
+// GetSingleMatch returns information about a match given a match id.
 func (c *RiotClient) GetSingleMatch(matchID string) (*SingleMatch, error) {
 	var singleMatch *SingleMatch
 	endpoint := fmt.Sprintf("match/v4/matches/%s", matchID)
@@ -478,7 +490,7 @@ func (c *RiotClient) GetSingleMatch(matchID string) (*SingleMatch, error) {
 	return singleMatch, nil
 }
 
-// Sanitize user input into a table format
+// NewSanitizedRank sanitizes user data into a table
 func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championId int) SanitizedRank {
 	t := "RED"
 	if team == 100 {
@@ -492,6 +504,7 @@ func (c *RiotClient) NewSanitizedRank(summonerName string, team uint8, championI
 	return SanitizedRank{summonerName, t, champ.Name, "N/A", "N/A"}
 }
 
+// GetLiveMatchBySummonerName searches for a live match given a summoner's name.
 func (c *RiotClient) GetLiveMatchBySummonerName(summonerName string) ([]SanitizedRank, error) {
 	// find the summoner in question
 	s, err := c.GetSummonerWithName(summonerName)

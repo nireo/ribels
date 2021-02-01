@@ -5,7 +5,7 @@ import (
 	"github.com/nireo/ribels/utils"
 )
 
-// This command makes a link between a discord id and a osu username, so we can use commands without arguments
+// SetCommandHandler makes a link between a discord id and a osu username, so we can use commands without arguments
 func SetCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// Check that the name isn't empty
 	if len(args) == 1 {

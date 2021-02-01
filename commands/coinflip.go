@@ -2,13 +2,16 @@ package commands
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/nireo/ribels/utils"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/nireo/ribels/utils"
 )
 
+// CoinflipCommandHandler handles a throw of a coin in the gamling commands. The user can bet their
+// tokens for a 50% chance of doubling it, and 50% chance of losing it all.
 func CoinflipCommandHandler(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	if len(args) == 1 {
 		_, _ = session.ChannelMessageSend(msg.ChannelID, "You need to provide a wager!")

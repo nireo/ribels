@@ -9,12 +9,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// User database model
 type User struct {
 	gorm.Model
 	DiscordID string `json:"discord_id"`
 	OsuName   string `json:"osu_name"`
 }
 
+// LeagueUser database model
 type LeagueUser struct {
 	gorm.Model
 	Username  string `json:"league_user"`
@@ -22,18 +24,21 @@ type LeagueUser struct {
 	Region    string `json:"region"`
 }
 
+// EconomyUser data model
 type EconomyUser struct {
 	gorm.Model
 	DiscordID string `json:"discord_id"`
-	Balance   int64    `json:"balance"`
+	Balance   int64  `json:"balance"`
 }
 
 var db *gorm.DB
 
+// GetDatabase returns a pointer to the local db variable.
 func GetDatabase() *gorm.DB {
 	return db
 }
 
+// InitDatabase sets up the database given a few parameters from the environment variables.
 func InitDatabase() {
 	user := os.Getenv("DATABASE_USER")
 	port := os.Getenv("DATABASE_PORT")
@@ -57,6 +62,7 @@ func InitDatabase() {
 	db = database
 }
 
+// CheckIfSet checks if a user already exists for a given discord_id
 func CheckIfSet(userID string) (User, error) {
 	var user User
 	if err := db.Where(&User{DiscordID: userID}).First(&user).Error; err != nil {
