@@ -98,7 +98,7 @@ class MusicPlayer(commands.Cog):
         source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(song.stream_url), volume=state.volume)
 
-        def after_playing(err):
+        async def after_playing(err):
             if len(state.playlist) > 0:
                 next_song = state.playlist.pop(0)
                 self.play_helper(client, state, next_song)
